@@ -71,7 +71,8 @@ class SystemPanel(JPanel, ActionListener, ItemListener, PropertyChangeListener):
     def getNumSims(self):
         return 1000*int(self.numSims.getSelectedItem())
 
-    def __init__(self, chartFun):
+    def __init__(self, chartFun, isTemporal = False):
+        self.isTemporal = isTemporal
         JPanel()
         #self.setBackground(Color.LIGHT_GRAY)
         self.chartFun = chartFun
@@ -93,14 +94,20 @@ class SystemPanel(JPanel, ActionListener, ItemListener, PropertyChangeListener):
         numSims.setMaximumSize(numSims.getPreferredSize())
         self.numSims = numSims
         self.add(self.numSims)
-        self.add(JLabel('"Neutral" mean Fst'))
-        self.neutral = JCheckBox()
-        self.neutral.addActionListener(self)
-        self.add(self.neutral)
-        self.add(JLabel('Force mean Fst'))
-        self.force = JCheckBox()
-        self.force.addActionListener(self)
-        self.add(self.force)
+        if isTemporal:
+            self.add(JLabel('"Neutral" Ne'))
+            self.nene = JCheckBox()
+            self.nene.addActionListener(self)
+            self.add(self.nene)
+        else:
+            self.add(JLabel('"Neutral" mean Fst'))
+            self.neutral = JCheckBox()
+            self.neutral.addActionListener(self)
+            self.add(self.neutral)
+            self.add(JLabel('Force mean Fst'))
+            self.force = JCheckBox()
+            self.force.addActionListener(self)
+            self.add(self.force)
         self.add(JLabel('Confidence interval '))
         ci = JComboBox(['0.95', '0.99', '0.995'])
         ci.addItemListener(self)

@@ -36,6 +36,7 @@ from Shared import error, yesNo, info
 import FDistExtra
 from LoadStatus import LoadDialog
 
+from temporal import Temporal
 
 #There are quite a few global variables
 #  This is acceptable because the application won't grow that much
@@ -266,7 +267,7 @@ def createInfile(fdf):
 def update_load_status(curr):
     global loadPanel
     loadPanel.update_status(curr)
-    
+
 
 def runDatacal(after):
     global frame, loadPanel
@@ -275,7 +276,7 @@ def runDatacal(after):
 
 def endRunDatacal(after):
     global fdc, selRec2, sampSize, locusFst
-    global empiricalPanel, isDominant, systemPanel
+    global empiricalPanel, isDominant, systemPanel, isTemporal
     #createInfile(convert_genepop_to_fdist(selRec2))
     createInfile(convert_genepop_to_fdist(selRec2, update_load_status))
 
@@ -285,13 +286,16 @@ def endRunDatacal(after):
         fst, sampSize, loci, pops, F, obs = fdc.run_datacal(
             data_dir = lpath, version = 2,
             crit_freq=crit, p=0.5, beta=beta)
+    elif isTemporal:
+        pass
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
-    if fst < 0.0:
-        systemPanel.force.setEnabled(False)
-        systemPanel.force.setSelected(False)
-    else:
-        systemPanel.force.setEnabled(True)
+    if not isTemporal:
+        if fst < 0.0:
+            systemPanel.force.setEnabled(False)
+            systemPanel.force.setSelected(False)
+        else:
+            systemPanel.force.setEnabled(True)
     f = open(lpath + os.sep + 'data_fst_outfile')
     locusFst = []
     l = f.readline()
@@ -678,7 +682,7 @@ Bioinformatics doi: 10.1093/bioinformatics/btr253
 Beaumont MA, Nichols RA (1996)
 Evaluating loci for use in the genetic analysis of population structure
 Proceedings of the Royal Society of London B 263: 1619-1626
-         
+
 AND
 
 LOSITAN: A workbench to detect molecular adaptation based on a Fst-outlier method
@@ -744,12 +748,13 @@ class doAction(ActionListener):
             sys.exit(-1)
 
 def createParametersPanel(manager):
-    global systemPanel, menuHandles
-    systemPanel = SystemPanel(changeChartCI)
+    global systemPanel, menuHandles, isTemporal
+    systemPanel = SystemPanel(changeChartCI, isTemporal)
     global summPanel
-    summPanel = SummPanel()
+    summPanel = SummPanel(isTemporal)
     global empiricalPanel, isDominant
-    empiricalPanel = EmpiricalPanel(menuHandles, manager, isDominant, systemPanel)
+    empiricalPanel = EmpiricalPanel(menuHandles, manager, isDominant,
+            systemPanel, isTemporal)
     global simsDonePanel
     simsDonePanel = Meter(300, 120, 10)
     panel = JPanel()
@@ -964,9 +969,15 @@ def prepareFDist():
 global lpath
 global isDominant
 if len(sys.argv)>1:
-    isDominant = True
+    if sys.argv[1] == "temp":
+        isDominant = False
+        isTemporal = True
+    else:
+        isDominant = True
+        isTemporal = False
 else:
     isDominant = False
+    isTemporal = False
 lpath = None
 if isDominant:
     myPath = ".mcheza"

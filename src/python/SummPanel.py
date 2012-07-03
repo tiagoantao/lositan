@@ -11,12 +11,13 @@ def countPops(rec):
 
 
 class SummPanel(JPanel):
-    def __init__(self):
+    def __init__(self, isTemporal):
+        self.isTemporal = isTemporal
         JPanel()
         self.setLayout(GridLayout(6,2))
         self.add(JLabel('Total data'))
         self.add(JLabel(''))
-        self.add(JLabel('# Pops'))
+        self.add(JLabel('# Pops' if not isTemporal else "# Gens"))
         self.totalPops = JLabel('0', SwingConstants.RIGHT)
         self.add(self.totalPops)
         self.add(JLabel('# Loci'))
@@ -24,7 +25,7 @@ class SummPanel(JPanel):
         self.add(self.totalLoci)
         self.add(JLabel('Selected'))
         self.add(JLabel(''))
-        self.add(JLabel('# Pops'))
+        self.add(JLabel('# Pops' if not isTemporal else "# Gens"))
         self.selPops = JLabel('0', SwingConstants.RIGHT)
         self.add(self.selPops)
         self.add(JLabel('# Loci'))

@@ -10,18 +10,25 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
     def propertyChange(self, evt):
         if self.ignoreChanges: return
         change = False
-        if evt.getSource() == self.fst and evt.getPropertyName() == 'value':
-            new = float(evt.getNewValue())
-            old = float(evt.getOldValue())
-            if new > 0.99:
-                evt.getSource().setValue(old)
-            if new < -0.2:
-                evt.getSource().setValue(old)
-            elif new< 0.0:
-                self.systemPanel.force.setSelected(False)
-                self.systemPanel.force.setEnabled(False)
-            else:
-                self.systemPanel.force.setEnabled(True)
+        if not self.isTemporal:
+            if evt.getSource() == self.fst and evt.getPropertyName() == 'value':
+                new = float(evt.getNewValue())
+                old = float(evt.getOldValue())
+                if new > 0.99:
+                    evt.getSource().setValue(old)
+                if new < -0.2:
+                    evt.getSource().setValue(old)
+                elif new< 0.0:
+                    self.systemPanel.force.setSelected(False)
+                    self.systemPanel.force.setEnabled(False)
+                else:
+                    self.systemPanel.force.setEnabled(True)
+        else:
+            if evt.getSource() == self.ne and evt.getPropertyName() == 'value':
+                new = float(evt.getNewValue())
+                old = float(evt.getOldValue())
+                if new < 0:
+                    evt.getSource().setValue(old)
         if self.isDominant and evt.getSource() in [self.theta, self.beta1,
             self.beta2, self.crit] and evt.getPropertyName() == 'value':
             new = float(evt.getNewValue())
@@ -34,7 +41,7 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
             old = int(evt.getOldValue())
             if new > 50 and old > 4:
                 warn(self, 'A sample size bigger than 50 is not expected to produce better results, while it slows the computation')
-            if new < 5 and (new!=0 and not isDominant):
+            if new < 5 and (new!=0 and not self.isDominant):
                 evt.getSource().setValue(old)
         if evt.getSource() == self.pops and evt.getPropertyName() == 'value':
             change = True
@@ -107,36 +114,45 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
         self.sampleSize.setValue(sampleSize)
         self.ignoreChanges = ignoreChanges
 
-    def __init__(self, menuHandles, manager, isDominant, systemPanel):
+    def __init__(self, menuHandles, manager, isDominant, systemPanel,
+            isTemporal = False):
         self.systemPanel = systemPanel
         self.knownPops = 0
         self.ignoreChanges = True
         JPanel()
         self.menuHandles = menuHandles
         self.isDominant = isDominant
+        self.isTemporal = isTemporal
         if isDominant:
             self.setLayout(GridLayout(8,2))
         else:
             self.setLayout(GridLayout(5,2))
-        self.add(JLabel('Attempted Fst'))
-        fst = JFormattedTextField(NumberFormat.getNumberInstance(Locale.US))
-        fst.addPropertyChangeListener(self)
-        self.fst = fst
-        self.add(fst)
+        if isTemporal:
+            self.add(JLabel('Ne'))
+            ne = JFormattedTextField(NumberFormat.getNumberInstance(Locale.US))
+            ne.addPropertyChangeListener(self)
+            self.ne = ne
+            self.add(ne)
+        else:
+            self.add(JLabel('Attempted Fst'))
+            fst = JFormattedTextField(NumberFormat.getNumberInstance(Locale.US))
+            fst.addPropertyChangeListener(self)
+            self.fst = fst
+            self.add(fst)
         self.add(JLabel('Expected total pops'))
         pops = JFormattedTextField(NumberFormat.getIntegerInstance(Locale.US))
         pops.addPropertyChangeListener(self)
         #self.pops = JComboBox(['1', '2', '4', '8', '12', '16'])
         self.pops = pops
         self.add(self.pops)
-        if not isDominant:
+        if not isDominant and not isTemporal:
             self.add(JLabel('Mutation model'))
-        self.mut = JComboBox(['Infinite Alleles', 'Stepwise'])
-        if not isDominant:
+            self.mut = JComboBox(['Infinite Alleles', 'Stepwise'])
             self.mut.addItemListener(self)
             self.add(self.mut)
         self.add(JLabel('Subsample size'))
-        sampleSize = JFormattedTextField(NumberFormat.getIntegerInstance(Locale.US))
+        sampleSize = JFormattedTextField(
+                NumberFormat.getIntegerInstance(Locale.US))
         sampleSize.addPropertyChangeListener(self)
         self.sampleSize = sampleSize
         self.add(self.sampleSize)

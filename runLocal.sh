@@ -7,4 +7,4 @@ rm x
 export JYTHONPATH
 cd src/python
 
-java -Xmx1024m -jar ../../libs/jython.jar Main.py $@
+java -Xmx1024m -cp ../java:../../libs/jython.jar org.python.util.jython Main.py $@

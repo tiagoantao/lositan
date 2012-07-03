@@ -13,6 +13,7 @@ cp mcheza.jpg deploy
 
 cp support/allfdist.zip deploy/selwb
 mkdir deploy/selwb/py
+mkdir deploy/selwb/temporal
 cp src/python/* deploy/selwb/py
 cp support/example* deploy/selwb/py
 cp support/dexample* deploy/selwb/py
@@ -28,9 +29,10 @@ rm -rf py
 cd ../..
 cd src/java
 #javac -cp ../../deploy/lib/jython.jar Boot.java
-javac -source 1.5 -target 1.5 -cp ../../deploy/lib/jython.jar Boot.java
+javac -source 1.5 -target 1.5 -cp ../../deploy/lib/jython.jar Boot.java temporal/Temporal.java
 cd ../..
 cp src/java/Boot.class deploy/selwb
+cp src/java/temporal/Temporal.class deploy/selwb/temporal
 cd deploy/selwb
 jar cvfm ../lib/selwb.jar ../../mymanifest .
 cd ..
