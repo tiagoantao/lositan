@@ -287,7 +287,7 @@ def endRunDatacal(after):
             data_dir = lpath, version = 2,
             crit_freq=crit, p=0.5, beta=beta)
     elif isTemporal:
-        pass
+        dc = temporalData
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
     if not isTemporal:

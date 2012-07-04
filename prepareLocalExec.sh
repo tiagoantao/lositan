@@ -3,4 +3,5 @@ cp support/*example* scratch
 cd scratch
 unzip ../support/allfdist >/dev/null
 cd ../src/java
-javac temporal/Temporal.java
+javac temporal/Simulator.java
+javac temporal/Datacal.java
