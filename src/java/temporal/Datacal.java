@@ -10,14 +10,6 @@ import java.io.*;
 
 public class Datacal {
 
-    private double[] harmonicMeanSampleSize;
-    private int[][] sampleSize;
-    private double[] Ne;
-    private double[] ftempvals;
-    private double[] heterozygosity;
-    private boolean initialzed;
-    private int numberOfGenerations;
-    private double[][] sampleFreqOverGenerations;
     /**
      * Takes an input file of the form given below and writes a file with the heterozygosity and
      * fdist values.
@@ -41,13 +33,16 @@ public class Datacal {
      */
     public void compute(String inFile, String outFile) {
         int indicator;
+        int numberOfGenerations;
         int numberOfLoci;
         int numberOfAlleles = 0;
         double invSampleSizeSum;
         int temp;
+        int tempSum;
+        double[][] sampleFreqOverGenerations;
+        double[] harmonicMeanSampleSize;
         int[] numValidGenerations;
         int[][] validGenerations;
-        initialzed = true;
         try {
             FileInputStream fstream = new FileInputStream(inFile);
             DataInputStream in = new DataInputStream(fstream);
@@ -74,7 +69,6 @@ public class Datacal {
             harmonicMeanSampleSize = new double[numberOfLoci];
             numValidGenerations = new int[numberOfLoci];
             validGenerations = new int[numberOfLoci][numberOfGenerations];
-            sampleSize = new int[numberOfGenerations][numberOfLoci];
             for (locusCount=0; locusCount<numberOfLoci; locusCount++) {
                 strLine = readNewLine(br);
                 numberOfAlleles = Integer.parseInt(strLine);
@@ -89,10 +83,10 @@ public class Datacal {
                         strVector = strLine.split("[ ]+");
                         temp = Integer.parseInt(strVector[0]);
                         if (numberOfAlleles == 2) {
-                            sampleSize[i][locusCount] = temp + Integer.parseInt(strVector[1]);
-                            if (sampleSize[i][locusCount] != 0) {
-                                invSampleSizeSum = invSampleSizeSum + (double)1/sampleSize[i][locusCount];
-                                sampleFreqOverGenerations[i][locusCount] = (double)temp / sampleSize[i][locusCount];
+                            tempSum = temp + Integer.parseInt(strVector[1]);
+                            if (tempSum != 0) {
+                                invSampleSizeSum = invSampleSizeSum + (double)1/tempSum;
+                                sampleFreqOverGenerations[i][locusCount] = (double)temp / tempSum;
                                 validGenerations[locusCount][i] = 1;
                             } else  {
                                 sampleFreqOverGenerations[i][locusCount] = 0;
@@ -115,10 +109,10 @@ public class Datacal {
                         strVector2 = strLine2.split("[ ]+");
                         for (int i = 0; i < numberOfGenerations; i++) {
                             temp = Integer.parseInt(strVector[i]);
-                            sampleSize[i][locusCount] = temp + Integer.parseInt(strVector2[i]);
-                            if (sampleSize[i][locusCount] != 0) {
-                                invSampleSizeSum = invSampleSizeSum + (double) 1 / sampleSize[i][locusCount];
-                                sampleFreqOverGenerations[i][locusCount] = (double) temp / sampleSize[i][locusCount];
+                            tempSum = temp + Integer.parseInt(strVector2[i]);
+                            if (tempSum != 0) {
+                                invSampleSizeSum = invSampleSizeSum + (double) 1 / tempSum;
+                                sampleFreqOverGenerations[i][locusCount] = (double) temp / tempSum;
                                 validGenerations[locusCount][i] = 1;
                             } else {
                                 sampleFreqOverGenerations[i][locusCount] = 0;
@@ -139,9 +133,9 @@ public class Datacal {
             //Close the input stream
             in.close();
             Simulator simulator = new Simulator();
-            ftempvals = simulator.computeFTemp(
+            double[] ftempvals = simulator.computeFTemp(
                     sampleFreqOverGenerations, harmonicMeanSampleSize, numValidGenerations, validGenerations);
-            heterozygosity = simulator.computeHetroz(
+            double[] heterozygosity = simulator.computeHetroz(
                     sampleFreqOverGenerations, numValidGenerations);
             for (int i=0; i<numberOfLoci; i++) {
                     System.out.format("%.4f %.4f%n", heterozygosity[i], ftempvals[i]);
@@ -152,76 +146,6 @@ public class Datacal {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
-    private double computeFc(double x, double y) {
-        return (double)Math.pow(x-y,2) / ((x+y)/2 - x*y);
-    }
-
-    private double[] computeNeWrapper(int startGen, int endGen) {
-        Ne = new double[sampleFreqOverGenerations[0].length];
-        double Fc;
-        int startSampleSize, endSampleSize;
-        for (int i=0; i<sampleFreqOverGenerations[0].length;i++) {
-            Fc = computeFc(sampleFreqOverGenerations[startGen][i], sampleFreqOverGenerations[endGen][i]);
-            startSampleSize = sampleSize[startGen][i];
-            endSampleSize = sampleSize[endGen][i];
-            if (Double.isNaN(Fc)) {
-                Ne[i] = Double.NaN;
-            } else {
-                Ne[i] = (endGen - startGen) / (double)(2*(Fc - 1/(double)(2*startSampleSize) - 1/(double)(2*endSampleSize)));
-            }
-        }
-        return Ne;
-    }
-
-    public double[] computeNe() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return null;
-        }
-        return computeNeWrapper(0,numberOfGenerations-1);
-    }
-
-    public double[] getFtemps() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return null;
-        }
-        return ftempvals;
-    }
-
-    public double getFtempMean() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return 0;
-        }
-        return vectorMean(ftempvals);
-    }
-
-    public double[] getHes() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return null;
-        }
-        return heterozygosity;
-    }
-
-    public double getNe() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return 0;
-        }
-        return vectorMean(Ne);
-    }
-
-    public double getSampleSize() {
-        if (!initialzed) {
-            System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return 0;
-        }
-        return vectorHarmMean(harmonicMeanSampleSize);
-    }
-
 
     private String readNewLine(BufferedReader br) {
         String nl = "";
@@ -235,28 +159,7 @@ public class Datacal {
         return nl;
     }
 
-    private double vectorMean(double[] vector) {
-        double sum=0;
-        int length = vector.length;
-        for (int i=0;i < vector.length; i++) {
-            if (Double.isNaN(vector[i])) {
-                length = length - 1;
-            } else {
-                sum = sum + vector[i];
-            }
-        }
-        return sum/length;
-    }
-
-    private double vectorHarmMean(double[] vector) {
-        double invSum=0;
-        for (int i=0;i < vector.length; i++) {
-           invSum = invSum + 1/(double)vector[i];
-        }
-        return vector.length/(double)invSum;
-    }
-
-    private void writeFile(String fileName, double[] heterozygosity, double[] ftemp) {
+     private void writeFile(String fileName, double[] heterozygosity, double[] ftemp) {
       try {
         // Create file
           String line;
