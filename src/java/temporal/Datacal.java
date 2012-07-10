@@ -16,7 +16,7 @@ public class Datacal {
     private double[] ftempvals;
     private double[] heterozygosity;
     private boolean initialzed;
-    private int numberOfGenerations;
+    private int numberOfSampledYears;
     private double[][] sampleFreqOverGenerations;
     /**
      * Takes an input file of the form given below and writes a file with the heterozygosity and
@@ -66,25 +66,25 @@ public class Datacal {
             }
             // Read number of generations
             strLine = readNewLine(br);
-            numberOfGenerations = Integer.parseInt(strLine);
+            numberOfSampledYears = Integer.parseInt(strLine);
             // Read number of loci
             strLine = readNewLine(br);
             numberOfLoci = Integer.parseInt(strLine);
-            sampleFreqOverGenerations = new double[numberOfGenerations][numberOfLoci];
+            sampleFreqOverGenerations = new double[numberOfSampledYears][numberOfLoci];
             harmonicMeanSampleSize = new double[numberOfLoci];
             numValidGenerations = new int[numberOfLoci];
-            validGenerations = new int[numberOfLoci][numberOfGenerations];
-            sampleSize = new int[numberOfGenerations][numberOfLoci];
+            validGenerations = new int[numberOfLoci][numberOfSampledYears];
+            sampleSize = new int[numberOfSampledYears][numberOfLoci];
             for (locusCount=0; locusCount<numberOfLoci; locusCount++) {
                 strLine = readNewLine(br);
                 numberOfAlleles = Integer.parseInt(strLine);
-                numValidGenerations[locusCount] = numberOfGenerations;
+                numValidGenerations[locusCount] = numberOfSampledYears;
                 if (numberOfAlleles != 1 && numberOfAlleles !=2) {
                     throw new IllegalArgumentException("number_of_alleles must be 1 or 2");
                 }
                 if (indicator == 0) { // generations by rows in data matrix
                     invSampleSizeSum=0;
-                    for (int i=0; i<numberOfGenerations; i++) {
+                    for (int i=0; i<numberOfSampledYears; i++) {
                         strLine = readNewLine(br);
                         strVector = strLine.split("[ ]+");
                         temp = Integer.parseInt(strVector[0]);
@@ -113,7 +113,7 @@ public class Datacal {
                     if (numberOfAlleles == 2) {
                         strLine2 = readNewLine(br);
                         strVector2 = strLine2.split("[ ]+");
-                        for (int i = 0; i < numberOfGenerations; i++) {
+                        for (int i = 0; i < numberOfSampledYears; i++) {
                             temp = Integer.parseInt(strVector[i]);
                             sampleSize[i][locusCount] = temp + Integer.parseInt(strVector2[i]);
                             if (sampleSize[i][locusCount] != 0) {
@@ -127,7 +127,7 @@ public class Datacal {
                             }
                         }
                     } else {
-                        for (int i = 0; i < numberOfGenerations; i++) {
+                        for (int i = 0; i < numberOfSampledYears; i++) {
                             sampleFreqOverGenerations[i][locusCount] = 1;
                             invSampleSizeSum = invSampleSizeSum + (double) 1/Integer.parseInt(strVector[i]);
                             validGenerations[locusCount][i] = 1;
@@ -143,9 +143,6 @@ public class Datacal {
                     sampleFreqOverGenerations, harmonicMeanSampleSize, numValidGenerations, validGenerations);
             heterozygosity = simulator.computeHetroz(
                     sampleFreqOverGenerations, numValidGenerations);
-            for (int i=0; i<numberOfLoci; i++) {
-                    System.out.format("%.4f %.4f%n", heterozygosity[i], ftempvals[i]);
-            }
             writeFile(outFile, heterozygosity, ftempvals);
 
         } catch (Exception e){//Catch exception if any
@@ -157,7 +154,7 @@ public class Datacal {
         return (double)Math.pow(x-y,2) / ((x+y)/2 - x*y);
     }
 
-    private double[] computeNeWrapper(int startGen, int endGen) {
+    private void computeNeWrapper(int startGen, int endGen, int numberOfGenerations) {
         Ne = new double[sampleFreqOverGenerations[0].length];
         double Fc;
         int startSampleSize, endSampleSize;
@@ -168,18 +165,28 @@ public class Datacal {
             if (Double.isNaN(Fc)) {
                 Ne[i] = Double.NaN;
             } else {
-                Ne[i] = (endGen - startGen) / (double)(2*(Fc - 1/(double)(2*startSampleSize) - 1/(double)(2*endSampleSize)));
+                Ne[i] = (numberOfGenerations) / (double)(2*(Fc - 1/(double)(2*startSampleSize) - 1/(double)(2*endSampleSize)));
+                // Negative Ne estimate implies that Ne is infinitely large, so we replace it by a "large" number
+                if (Ne[i] < 0) {
+                    Ne[i] = 100000;
+                }
             }
         }
-        return Ne;
     }
 
-    public double[] computeNe() {
+    /**
+     * Takes the number of generations that the samples span and computes the Ne value for the population.
+     * @param numberOfGenerations - number of generations that the samples span. Could be different from the
+     *  index of the last sample number
+     * @throws none
+     * @returns none
+     */
+    public void computeNe(int numberOfGenerations) {
         if (!initialzed) {
             System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
-            return null;
+            return;
         }
-        return computeNeWrapper(0,numberOfGenerations-1);
+        computeNeWrapper(0,numberOfSampledYears-1, numberOfGenerations);
     }
 
     public double[] getFtemps() {
@@ -211,7 +218,7 @@ public class Datacal {
             System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
             return 0;
         }
-        return vectorMean(Ne);
+        return vectorHarmMean(Ne);
     }
 
     public double getSampleSize() {
@@ -250,10 +257,15 @@ public class Datacal {
 
     private double vectorHarmMean(double[] vector) {
         double invSum=0;
+        int length = vector.length;
         for (int i=0;i < vector.length; i++) {
-           invSum = invSum + 1/(double)vector[i];
+            if (Double.isNaN(vector[i])) {
+                length = length - 1;
+            } else {
+                invSum = invSum + 1/(double)vector[i];
+            }
         }
-        return vector.length/(double)invSum;
+        return length/(double)invSum;
     }
 
     private void writeFile(String fileName, double[] heterozygosity, double[] ftemp) {
