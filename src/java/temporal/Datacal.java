@@ -1,5 +1,9 @@
-package temporal;
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
+package lositan;
 /**
  *
  * @author Nina Overgaard Therkildsen
@@ -12,7 +16,8 @@ public class Datacal {
 
     private double[] harmonicMeanSampleSize;
     private int[][] sampleSize;
-    private double[] Ne;
+    private double Ne;
+    private double NeOldStyle[];
     private double[] ftempvals;
     private double[] heterozygosity;
     private boolean initialzed;
@@ -20,22 +25,22 @@ public class Datacal {
     private double[][] sampleFreqOverGenerations;
     /**
      * Takes an input file of the form given below and writes a file with the heterozygosity and
-     * fdist values.
+     * ftemp values.
      * Input format:
      * - 1/0 indicator. alleles by rows in data matrix (1), or generations by rows (0).
      * - No of generations
      * - No of loci
      * - No of alleles at locus 1 # Always 1 or 2, otherwise throw error
      * - Matrix of data at locus 1 either with each row corresponding to the same allele or to the
-     *      same generations. # unlike in our setup, all the allele frequencies are specified
+     *      same generations. # unlike in the simulation setup, all the allele frequencies are specified
      * - No of alleles at locus 2 # Always 1 or 2, otherwise throw error
      * - Matrix...
      *   .
      *   .
      *   .
      * etc.
-     * @param inputFile - Allele frequencies over all generations
-     * @param outputDir - The set of generations from which to sample
+     * @param inputFile - input file name with path
+     * @param outputFile - output file name with path
      * @throws none
      * @returns none
      */
@@ -150,12 +155,20 @@ public class Datacal {
         }
     }
 
+    // Deprecated
+    // The Fk mertic is used instead of Fc now
     private double computeFc(double x, double y) {
         return (double)Math.pow(x-y,2) / ((x+y)/2 - x*y);
     }
 
-    private void computeNeWrapper(int startGen, int endGen, int numberOfGenerations) {
-        Ne = new double[sampleFreqOverGenerations[0].length];
+    private double computeFk(double x, double y) {
+        return (double)Math.pow(x-y,2) / ((x+y)/2 - Math.pow((x+y)/2,2));
+    }
+
+    // Deprecated
+    // This is the old version of the function that uses the Fc metric instead of Fk
+    private void computeNeWrapperOld(int startGen, int endGen, int numberOfGenerations) {
+        NeOldStyle = new double[sampleFreqOverGenerations[0].length];
         double Fc;
         int startSampleSize, endSampleSize;
         for (int i=0; i<sampleFreqOverGenerations[0].length;i++) {
@@ -163,20 +176,56 @@ public class Datacal {
             startSampleSize = sampleSize[startGen][i];
             endSampleSize = sampleSize[endGen][i];
             if (Double.isNaN(Fc)) {
-                Ne[i] = Double.NaN;
+                NeOldStyle[i] = Double.NaN;
             } else {
-                Ne[i] = (numberOfGenerations) / (double)(2*(Fc - 1/(double)(2*startSampleSize) - 1/(double)(2*endSampleSize)));
+                NeOldStyle[i] = (numberOfGenerations) / (double)(2*(Fc - 1/(double)(2*startSampleSize) - 1/(double)(2*endSampleSize)));
                 // Negative Ne estimate implies that Ne is infinitely large, so we replace it by a "large" number
-                if (Ne[i] < 0) {
-                    Ne[i] = 100000;
+                if (NeOldStyle[i] < 0) {
+                    NeOldStyle[i] = 100000;
                 }
             }
         }
     }
 
-    /**
-     * Takes the number of generations that the samples span and computes the Ne value for the population.
-     * @param numberOfGenerations - number of generations that the samples span. Could be different from the
+    private void computeNeWrapper(int startGen, int endGen, int numberOfGenerations) {
+        double Fk;
+        double Fmean = 0;
+        double[] Fsum = new double[sampleFreqOverGenerations[0].length];
+        int startSampleSize, endSampleSize;
+        for (int i = 0; i < sampleFreqOverGenerations[0].length; i++) {
+            if (alleleFreqCheck(i, startGen, endGen)) {
+                Fk = computeFk(sampleFreqOverGenerations[startGen][i], sampleFreqOverGenerations[endGen][i]);
+                startSampleSize = sampleSize[startGen][i];
+                endSampleSize = sampleSize[endGen][i];
+                if (Double.isNaN(Fk)) {
+                    Fsum[i] = Double.NaN;
+                } else {
+                    Fsum[i] = Fk - (1 / (double) (startSampleSize)) - (1 / (double) (endSampleSize));
+                }
+            } else {
+                Fsum[i] = Double.NaN;
+            }
+        }
+        Fmean = vectorMean(Fsum);
+        Ne = numberOfGenerations / (double) (2 * Fmean);
+        if (Ne < 0) {
+            Ne = 10000;
+        }
+    }
+
+    private boolean alleleFreqCheck(int locus, int startGen, int endGen) {
+        double startFreq = sampleFreqOverGenerations[startGen][locus];
+        double endFreq = sampleFreqOverGenerations[endGen][locus];
+        double meanFreq = (startFreq + endFreq) / 2;
+        if (meanFreq > 0.05 && meanFreq < 0.95) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+        /**
+     * Takes the number of generations that the samples span and computes the Ne value for the population. 
+     * @param numberOfGenerations - number of generations that the samples span. Could be different from the 
      *  index of the last sample number
      * @throws none
      * @returns none
@@ -218,7 +267,7 @@ public class Datacal {
             System.out.println("Datacal class uninitialized! Please run Datacal.compute first.");
             return 0;
         }
-        return vectorHarmMean(Ne);
+        return Ne;
     }
 
     public double getSampleSize() {
