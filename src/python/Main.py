@@ -36,7 +36,7 @@ from Shared import error, yesNo, info
 import FDistExtra
 from LoadStatus import LoadDialog
 
-from temporal import Temporal
+from temporal import Datacal
 
 #There are quite a few global variables
 #  This is acceptable because the application won't grow that much
@@ -203,10 +203,13 @@ def loadPopNames():
         empiricalPanel.cancel.setEnabled(False)
 
 def useExampleData():
-    global empiricalPanel, systemPanel, chartPanel, isDominant
+    global empiricalPanel, systemPanel, chartPanel, isDominant, isTemporal
     systemPanel.enableChartFun = False
     chartPanel.resetData()
-    if isDominant:
+    if isTemporal:
+        loadGenePop(lpath + os.sep + 'texample.gp')
+        loadFilePopNames(lpath + os.sep + 'texample.txt')
+    elif isDominant:
         loadGenePop(lpath + os.sep + 'dexample2.gp')
         loadFilePopNames(lpath + os.sep + 'dexample.txt')
     else:
@@ -275,7 +278,7 @@ def runDatacal(after):
     thread.start_new_thread(endRunDatacal, (after,))
 
 def endRunDatacal(after):
-    global fdc, selRec2, sampSize, locusFst
+    global fdc, selRec2, sampSize, locusFst, lpath
     global empiricalPanel, isDominant, systemPanel, isTemporal
     #createInfile(convert_genepop_to_fdist(selRec2))
     createInfile(convert_genepop_to_fdist(selRec2, update_load_status))
@@ -287,7 +290,10 @@ def endRunDatacal(after):
             data_dir = lpath, version = 2,
             crit_freq=crit, p=0.5, beta=beta)
     elif isTemporal:
-        dc = temporalData
+        dc = Datacal()
+        dc.compute(lpath + os.sep + "infile", lpath + os.sep + "data_fst_outfile")
+        sampSize = dc.getSampleSize()
+        ne = dc.getNe()
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
     if not isTemporal:
@@ -319,7 +325,10 @@ def endRunDatacal(after):
         locusFst.append(None)
     f.close()
     if sampSize > 50: sampSize = 50
-    empiricalPanel.setFst(fst)
+    if isTemporal:
+        empiricalPanel.setNe(ne)
+    else:
+        empiricalPanel.setFst(fst)
     empiricalPanel.setSampleSize(sampSize)
     info (frame, "Dataset Fst: %f" % (fst))
     after()
@@ -670,6 +679,10 @@ def checkLoci():
     sp.show()
 
 def displayCitation():
+    if isTemporal:
+        info(frame, """If you use LosiTemp please cite:
+        ...
+        """)
     if isDominant:
         info(frame, """If you use Mcheza please cite:
 Antao T, Beaumont MA (2011)
@@ -930,7 +943,9 @@ def doPrettyType(frame, manager):
 def createFrame():
     global isDominant
     manager = doAction()
-    if isDominant:
+    if isTemporal:
+        frame = JFrame("LosiTemp - LOoking for selection In TEMPoral datasets")
+    elif isDominant:
         frame = JFrame("Mcheza - Dominant Selection Workbench")
     else:
         frame = JFrame("LOSITAN - Selection Workbench")
@@ -979,7 +994,9 @@ else:
     isDominant = False
     isTemporal = False
 lpath = None
-if isDominant:
+if isTemporal:
+    myPath = ".lositemp"
+elif isDominant:
     myPath = ".mcheza"
 else:
     myPath = ".lositan"

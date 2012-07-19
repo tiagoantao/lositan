@@ -17,6 +17,7 @@ mkdir deploy/selwb/temporal
 cp src/python/* deploy/selwb/py
 cp support/example* deploy/selwb/py
 cp support/dexample* deploy/selwb/py
+cp support/texample* deploy/selwb/py
 cp -R libs/Lib/* deploy/selwb/py
 cp -R libs/Bio deploy/selwb/py
 find deploy -name \*pyc |xargs rm

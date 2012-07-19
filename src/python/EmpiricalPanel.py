@@ -81,6 +81,14 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
         self.fst.setValue(fst)
         self.ignoreChanges = ignoreChanges
 
+    def getNe(self):
+        return self.ne.getValue()
+    def setNe(self, ne):
+        ignoreChanges =  self.ignoreChanges
+        self.ignoreChanges = True
+        self.ne.setValue(ne)
+        self.ignoreChanges = ignoreChanges
+
     def getTheta(self):
         return self.theta.getValue()
     def setTheta(self, theta):
