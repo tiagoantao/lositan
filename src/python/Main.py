@@ -52,6 +52,7 @@ from temporal import Datacal
 #  sampSize  - Sample size
 #  locusFst  - Fst by (selected) Locus
 #  splitSize - Split size (for load balancing)
+#  tempSamples - temporal points
 #
 #  fdc       - FDist controller
 #  fda       - FDist async
@@ -191,6 +192,24 @@ def loadFilePopNames(file):
     f.close()
     remPops = []
 
+def loadTemporal(fname):
+    global tempSamples, popNames
+    f = open(fname)
+    l = f.readline()
+    i = 0
+    tempSamples = []
+    while l<>'':
+        if i>len(popNames):
+            break
+        tempSamples.append(int(l.rstrip()))
+        i += 1
+        l = f.readline()
+    f.close()
+    if i!=len(popNames):
+        error(frame, "Number of temporal samples is less than the number of time points specified")
+    else:
+        info(frame, "Temporal points set at: %s" % str(tempSamples))
+
 def loadPopNames():
     global frame, empiricalPanel
     fc = JFileChooser()
@@ -209,6 +228,7 @@ def useExampleData():
     if isTemporal:
         loadGenePop(lpath + os.sep + 'texample.gp')
         loadFilePopNames(lpath + os.sep + 'texample.txt')
+        loadTemporal(lpath + os.sep + 'texample.temp')
     elif isDominant:
         loadGenePop(lpath + os.sep + 'dexample2.gp')
         loadFilePopNames(lpath + os.sep + 'dexample.txt')
@@ -279,7 +299,8 @@ def runDatacal(after):
 
 def endRunDatacal(after):
     global fdc, selRec2, sampSize, locusFst, lpath
-    global empiricalPanel, isDominant, systemPanel, isTemporal
+    global empiricalPanel, isDominant, systemPanel
+    global tempSamples, isTemporal
     #createInfile(convert_genepop_to_fdist(selRec2))
     createInfile(convert_genepop_to_fdist(selRec2, update_load_status))
 
@@ -293,6 +314,7 @@ def endRunDatacal(after):
         dc = Datacal()
         dc.compute(lpath + os.sep + "infile", lpath + os.sep + "data_fst_outfile")
         sampSize = dc.getSampleSize()
+        dc.computeNe(tempSamples[-1] - tempSamples[0])
         ne = dc.getNe()
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
@@ -330,7 +352,10 @@ def endRunDatacal(after):
     else:
         empiricalPanel.setFst(fst)
     empiricalPanel.setSampleSize(sampSize)
-    info (frame, "Dataset Fst: %f" % (fst))
+    if isTemporal:
+       info (frame, "Dataset Ne: %f" % ne)
+    else:
+       info (frame, "Dataset Fst: %f" % fst)
     after()
     loadPanel.dispose()
 

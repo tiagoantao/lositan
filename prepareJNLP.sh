@@ -30,10 +30,11 @@ rm -rf py
 cd ../..
 cd src/java
 #javac -cp ../../deploy/lib/jython.jar Boot.java
-javac -source 1.5 -target 1.5 -cp ../../deploy/lib/jython.jar Boot.java temporal/Temporal.java
+javac -source 1.5 -target 1.5 -cp ../../deploy/lib/jython.jar Boot.java temporal/Datacal.java temporal/Simulator.java
 cd ../..
 cp src/java/Boot.class deploy/selwb
-cp src/java/temporal/Temporal.class deploy/selwb/temporal
+cp src/java/temporal/Simulator.class deploy/selwb/temporal
+cp src/java/temporal/Datacal.class deploy/selwb/temporal
 cd deploy/selwb
 jar cvfm ../lib/selwb.jar ../../mymanifest .
 cd ..

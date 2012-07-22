@@ -66,13 +66,16 @@ public class Boot {
     }
   }
 
-  public void go(boolean isDominant) {
+  public void go(boolean isDominant, boolean isTemporal) {
     String os = System.getProperty("os.name");
     String home = System.getProperty("user.home");
     String sep = System.getProperty("file.separator");
     System.out.println(os + " " + home + " " + sep);
 
-    if (isDominant) {
+    if (isTemporal) {
+        directory = home + sep + ".lositemp";
+    }
+    else if (isDominant) {
         directory = home + sep + ".mcheza";
     }
     else {
@@ -95,7 +98,10 @@ public class Boot {
     Properties props = new Properties();
     props.setProperty("python.path", directory);
     String[] args;
-    if (isDominant) {
+    if (isTemporal) {
+        args = new String[] {"fromJava", "temp"};
+    }
+    else if (isDominant) {
         args = new String[] {"fromJava", "dom"};
     }
     else {
@@ -111,7 +117,17 @@ public class Boot {
 
   public static void main(String[] args) {
     Boot b= new Boot();
-    b.go(args.length > 0);
+    if (args.length>0) {
+        if (args[0].equals("temp")) {
+            b.go(false, true);
+        }
+        else {
+            b.go(true, false);
+        }
+    }
+    else {
+        b.go(false, false);
+    }
 
   }
 }

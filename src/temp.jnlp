@@ -2,14 +2,14 @@
 <!-- JNLP File for lositan2 -->
 <jnlp
     spec="1.0+"
-    codebase="http://popgen.eu/soft/mcheza/code2"
-    href="mcheza.jnlp">
+    codebase="http://popgen.eu/soft/lositemp/code2"
+    href="temp.jnlp">
     <information>
-        <title>Mcheza - Selection Workbench</title>
+        <title>LosiTemp - LOoking for selection In TEMPoral datasets</title>
         <vendor>Tiago Antao</vendor>
-        <homepage href="http://popgen.eu/soft/mcheza"/>
-        <description>MCHEZA Application</description>
-        <description kind="short">A workbench for selection detection</description>
+        <homepage href="http://popgen.eu/soft/lositemp"/>
+        <description>LosiTemp Application</description>
+        <description kind="short">A workbench for selection detection in temporal datasets</description>
         <offline-allowed/>
         <shortcut online="false">
             <desktop/>
