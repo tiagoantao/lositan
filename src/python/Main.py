@@ -446,6 +446,7 @@ def report(fst):
     global chartPanel, simsDonePanel, systemPanel, empiricalPanel
     global empiricalPanel, menuHandles, statusPanel, frame
     global myFst, maxRun, minRun # This is really a private var to be reused
+    global isTemporal, tempSamples
     fda.acquire()
     if myFst < 0:
         myFst = empiricalPanel.getFst()
@@ -493,13 +494,15 @@ def report(fst):
                 crit = empiricalPanel.getCrit()
             else:
                 theta = beta = crit = None
-            runFDistPart(False, selRec2, mut, numSims, npops, nsamples, myFst,
-                sampSize, theta, beta, crit, numCores)
+            if isTemporal:
+            else:
+                runFDistPart(False, selRec2, mut, numSims, npops, nsamples,
+                    myFst, sampSize, theta, beta, crit, numCores)
         elif runState == 'Neutral':
             maxRun = -1
             minRun = -1
             myFst  = -1
-            if isDominant:
+            if isDominant or isTemporal:
                 pv = fdc.run_pv(data_dir =  lpath, version=2)
             else:
                 pv = fdc.run_pv(data_dir =  lpath, version=1)
@@ -520,7 +523,12 @@ def report(fst):
                     lpath + os.sep + "nr")
             neutralRec = FileParser.read(lpath + os.sep + "nr")
             createInfile(convert_genepop_to_fdist(neutralRec))
-            if isDominant:
+            if isTemporal:
+                dc = Datacal()
+                dc.compute(lpath + os.sep + "infile", lpath + os.sep + "data_fst_outfile")
+                dc.computeNe(tempSamples[-1] - tempSamples[0])
+                myNe = dc.getNe()
+            elif isDominant:
                 crit = empiricalPanel.getCrit()
                 beta = empiricalPanel.getBeta()
                 myFst, _sampSize, _loci, _pops, _F, _obs = \
@@ -530,7 +538,10 @@ def report(fst):
                 myFst, _sampSize = fdc.run_datacal(data_dir = lpath)
             #if myFst < 0.005:
             #    myFst = 0.005
-            empiricalPanel.setFst(fst)
+            if isTemporal:
+                empiricalPanel.setNe(ne)
+            else:
+                empiricalPanel.setFst(fst)
             npops = empiricalPanel.getTotalPops()
             nsamples = countPops(selRec2)
             numCores = systemPanel.getNumCores()
@@ -545,20 +556,27 @@ def report(fst):
                 theta = beta = crit = None
             os.remove(lpath + os.sep + 'out.dat') #careful, not for 5000 case
             createInfile(convert_genepop_to_fdist(selRec2))
-            if isDominant:
+            if isTemporal:
+                dc = Datacal()
+                dc.compute(lpath + os.sep + "infile", lpath + os.sep + "data_fst_outfile")
+                dc.computeNe(tempSamples[-1] - tempSamples[0])
+                ne = dc.getNe()
+            elif isDominant:
                 _fst, _sampSize, _loci, _pops, _F, _obs = \
                     fdc.run_datacal(data_dir = lpath, version=2,
                         crit_freq = crit, p=0.5, beta=beta)
             else:
                 _fst, _sampSize = fdc.run_datacal(data_dir = lpath)
-            runFDistPart(False, selRec2, mut, numSims, npops, nsamples, myFst,
-                sampSize, theta, beta, crit, numCores)
+            if isTemporal:
+            else:
+                runFDistPart(False, selRec2, mut, numSims, npops, nsamples,
+                    myFst, sampSize, theta, beta, crit, numCores)
         elif runState == 'Final':
             maxRun = -1
             minRun = -1
             myFst  = -1
             statusPanel.setStatus('Done (preparing selection table, please wait...)', Color.GRAY)
-            if isDominant:
+            if isDominant or isTemporal:
                 pv = fdc.run_pv(data_dir =  lpath, version=2)
             else:
                 pv = fdc.run_pv(data_dir =  lpath, version=1)
@@ -600,7 +618,7 @@ def cancelFDist():
 def runFDist(more = False):
     global selRec2, frame, fdRequest, runState
     global empiricalPanel, systemPanel, statusPanel, chartPanel
-    global isDominant
+    global isDominant, isTemporal
     chartPanel.resetData(True)
     try:
         if not more:
@@ -616,7 +634,10 @@ def runFDist(more = False):
     if nsamples > npops:
         error(frame, "Expected total populations lower then selected populations")
         return
-    fst = empiricalPanel.getFst()
+    if isTemporal:
+        ne = empiricalPanel.getNe()
+    else:
+        fst = empiricalPanel.getFst()
     mutStr = empiricalPanel.mut.getSelectedItem()
     mut = getMut(mutStr)
     if isDominant:
@@ -656,8 +677,29 @@ def runFDist(more = False):
     else:
         fdRequest = ''
         runState  = 'Final'
-    runFDistPart(more, selRec2, mut, numSims, npops, nsamples, fst,
+    if isTemporal:
+        runFtempPart(more, selRec2, numSims, npops, nsamples, ne,
+            sampSize, numCores)
+    else:
+        runFDistPart(more, selRec2, mut, numSims, npops, nsamples, fst,
             sampSize, theta, beta, crit, numCores)
+
+def runFtempPart(more, selRec2, numSims, npops, nsamples, ne,
+        sampSize, numCores):
+    global fdt, tempSamples
+    global chartPanel, simsDonePanel
+    global splitSize
+    splitSize = max([500, numSims/(numCores*10)])
+    #print splitSize
+    fdt = Ftemp.Split(report, numCores, splitSize, '..')
+    if more:
+        oldRange = simsDonePanel.getValue() #range = value when done
+        simsDonePanel.setRange(oldRange + numSims / 1000)
+        simsDonePanel.setValue(oldRange)
+    else:
+        simsDonePanel.setRange(numSims / 1000)
+        simsDonePanel.setValue(0)
+    fdt.run_ftemp(npops, ne, sampSize, tempSamples, numSims, lpath)
 
 def runFDistPart(more, selRec2, mut, numSims, npops,
         nsamples, fst, sampSize, theta, beta, crit, numCores):
