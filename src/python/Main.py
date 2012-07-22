@@ -43,6 +43,7 @@ from temporal import Datacal
 
 #globals are:
 #  lpath     - LOSITAN path
+#  dataPath  - Last directory with opened data
 #
 #  rec2      - GenePop record
 #  selRec2   - GenePop record - only selected info
@@ -165,18 +166,30 @@ def loadGenePop(file):
         error(frame, "Not a genepop file!")
 
 def chooseFile():
-    global frame
+    global frame, dataPath
     global systemPanel, chartPanel
-    fc = JFileChooser()
+    global isTemporal
+    fc = JFileChooser(dataPath)
     retVal = fc.showOpenDialog(frame)
-    if retVal == JFileChooser.APPROVE_OPTION:
-        systemPanel.enableChartFun = False
-        fname = fc.getSelectedFile().getAbsolutePath()
-        chartPanel.resetData()
-        loadGenePop(fname)
-        updateAll()
-        enablePanel(empiricalPanel)
-        empiricalPanel.cancel.setEnabled(False)
+    if retVal != JFileChooser.APPROVE_OPTION:
+        return
+    fname = fc.getSelectedFile().getAbsolutePath()
+    dataPath = os.sep.join(fname.split(os.sep)[:-1])
+    if isTemporal:
+        info(frame, "We need a file with information about the temporal point of each sample")
+        tfc = JFileChooser(dataPath)
+        tRetVal = tfc.showOpenDialog(frame)
+        if retVal != JFileChooser.APPROVE_OPTION:
+            return
+        tname = tfc.getSelectedFile().getAbsolutePath()
+    systemPanel.enableChartFun = False
+    chartPanel.resetData()
+    loadGenePop(fname)
+    if isTemporal:
+        loadTemporal(tname)
+    updateAll()
+    enablePanel(empiricalPanel)
+    empiricalPanel.cancel.setEnabled(False)
 
 def loadFilePopNames(file):
     global popNames, remPops
@@ -212,7 +225,7 @@ def loadTemporal(fname):
 
 def loadPopNames():
     global frame, empiricalPanel
-    fc = JFileChooser()
+    fc = JFileChooser(dataPath)
     retVal = fc.showOpenDialog(frame)
     if retVal == JFileChooser.APPROVE_OPTION:
         file = fc.getSelectedFile()
@@ -252,7 +265,7 @@ def editPopNames():
 def savePopNames():
     global frame
     global popNames, remPops
-    fc = JFileChooser()
+    fc = JFileChooser(dataPath)
     retVal = fc.showSaveDialog(frame)
     if retVal == JFileChooser.APPROVE_OPTION:
         file = fc.getSelectedFile().getAbsolutePath()
@@ -1039,4 +1052,5 @@ openDir()
 prepareFDist()
 styleApp()
 frame = createFrame()
+dataPath = None
 disablePanel(empiricalPanel, ["theta", "beta1", "beta2", "crit"])
