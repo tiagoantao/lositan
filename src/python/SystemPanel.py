@@ -96,9 +96,9 @@ class SystemPanel(JPanel, ActionListener, ItemListener, PropertyChangeListener):
         self.add(self.numSims)
         if isTemporal:
             self.add(JLabel('"Neutral" Ne'))
-            self.nene = JCheckBox()
-            self.nene.addActionListener(self)
-            self.add(self.nene)
+            self.neutral = JCheckBox()
+            self.neutral.addActionListener(self)
+            self.add(self.neutral)
         else:
             self.add(JLabel('"Neutral" mean Fst'))
             self.neutral = JCheckBox()

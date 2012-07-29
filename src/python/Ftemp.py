@@ -3,6 +3,9 @@ import shutil
 import thread
 import time
 
+from java.lang import String
+import jarray
+
 from Bio.PopGen.Async import Local
 
 from temporal import Simulator
@@ -30,10 +33,12 @@ class FtempAsync():
         output_files['out.dat'] = open(data_dir + os.sep + 'out.dat', 'r')
         return ne, output_files
 
-    def run_ftemp(npops, ne, sample_size, gens_sample,
+    def run_ftemp(self, npops, ne, sample_size, gens_sample,
             num_sims, data_dir):
-        Simulator.main(["0", str(num_sims), str(sample_size),
-            ne, ] + map(lambda x:str(x), gens_sample))
+        print ["0", str(num_sims), str(sample_size),
+                str(ne), ] + map(lambda x:str(x), gens_sample)
+        Simulator.main(jarray.array(["0", str(num_sims), str(sample_size),
+                str(ne), ] + map(lambda x:str(x), gens_sample), String))
 
 
 

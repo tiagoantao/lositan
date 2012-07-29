@@ -36,6 +36,7 @@ from Shared import error, yesNo, info
 import FDistExtra
 from LoadStatus import LoadDialog
 
+import Ftemp
 from temporal import Datacal
 
 #There are quite a few global variables
@@ -495,6 +496,7 @@ def report(fst):
             else:
                 theta = beta = crit = None
             if isTemporal:
+                pass #XXX
             else:
                 runFDistPart(False, selRec2, mut, numSims, npops, nsamples,
                     myFst, sampSize, theta, beta, crit, numCores)
@@ -568,6 +570,7 @@ def report(fst):
             else:
                 _fst, _sampSize = fdc.run_datacal(data_dir = lpath)
             if isTemporal:
+                pass #XXX
             else:
                 runFDistPart(False, selRec2, mut, numSims, npops, nsamples,
                     myFst, sampSize, theta, beta, crit, numCores)
@@ -638,8 +641,9 @@ def runFDist(more = False):
         ne = empiricalPanel.getNe()
     else:
         fst = empiricalPanel.getFst()
-    mutStr = empiricalPanel.mut.getSelectedItem()
-    mut = getMut(mutStr)
+    if not isTemporal:
+        mutStr = empiricalPanel.mut.getSelectedItem()
+        mut = getMut(mutStr)
     if isDominant:
         theta = empiricalPanel.getTheta()
         beta = empiricalPanel.getBeta()
@@ -654,7 +658,10 @@ def runFDist(more = False):
     numCores = systemPanel.getNumCores()
     sampSize = empiricalPanel.getSampleSize()
     if not more:
-        force = systemPanel.getForce()
+        if not isTemporal:
+            force = systemPanel.getForce()
+        else:
+            force = False
         neutral = systemPanel.getNeutral()
         if neutral and force:
             statusPanel.setStatus('Forcing correct mean Fst for first pass', Color.RED)
