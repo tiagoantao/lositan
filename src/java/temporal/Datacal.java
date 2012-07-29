@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package lositan;
+package temporal;
 /**
  *
  * @author Nina Overgaard Therkildsen
