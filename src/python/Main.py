@@ -298,6 +298,7 @@ def updatePops(elementSel, elementRem):
 
 def createInfile(fdf):
     f=open(lpath + os.sep + 'infile', 'w')
+    print fdf.num_loci
     f.write(str(fdf))
     f.close()
 
@@ -447,23 +448,32 @@ def report(fst):
     global chartPanel, simsDonePanel, systemPanel, empiricalPanel
     global empiricalPanel, menuHandles, statusPanel, frame
     global myFst, maxRun, minRun # This is really a private var to be reused
-    global isTemporal, tempSamples
-    fda.acquire()
-    if myFst < 0:
-        myFst = empiricalPanel.getFst()
-    if maxRun < 0:
-        maxRun = 1.0
-        minRun = 0.0
-    ci = systemPanel.getCI()
+    global isTemporal, tempSamples, fdt
+    if isTemporal:
+        fdt.acquire()
+    else:
+        fda.acquire()
+        if myFst < 0:
+            myFst = empiricalPanel.getFst()
+        if maxRun < 0:
+            maxRun = 1.0
+            minRun = 0.0
     ext = FDistExtra.getExt()
     fdc = FDistController('.', ext)
+    ci = systemPanel.getCI()
     chartPanel.drawCI = True
     confLines = changeChartCI(False)
     simsDonePanel.increment(splitSize/1000.0)
-    desiredFst = empiricalPanel.getFst()
+    if isTemporal:
+        desiredNe = empiricalPanel.getNe()
+    else:
+        desiredFst = empiricalPanel.getFst()
     if simsDonePanel.getRange() == simsDonePanel.getValue():
         #print runState
-        fda.release() # We are the last one, this is safe
+        if isTemporal:
+            fdt.release() # We are the last one, this is safe
+        else:
+            fda.release() # We are the last one, this is safe
         if runState == 'ForceBeforeNeutral' or runState == 'Force':
             os.remove(lpath + os.sep + 'out.dat') #careful, not for 5000 case
             #print "max", maxRun, "min", minRun
@@ -504,7 +514,7 @@ def report(fst):
             maxRun = -1
             minRun = -1
             myFst  = -1
-            if isDominant or isTemporal:
+            if isDominant:
                 pv = fdc.run_pv(data_dir =  lpath, version=2)
             else:
                 pv = fdc.run_pv(data_dir =  lpath, version=1)
@@ -541,15 +551,15 @@ def report(fst):
             #if myFst < 0.005:
             #    myFst = 0.005
             if isTemporal:
-                empiricalPanel.setNe(ne)
+                empiricalPanel.setNe(myNe) #actually it is Ne
             else:
-                empiricalPanel.setFst(fst)
+                empiricalPanel.setFst(myFst)
+                mutStr = empiricalPanel.mut.getSelectedItem()
+                mut = getMut(mutStr)
             npops = empiricalPanel.getTotalPops()
             nsamples = countPops(selRec2)
             numCores = systemPanel.getNumCores()
             sampSize = empiricalPanel.getSampleSize()
-            mutStr = empiricalPanel.mut.getSelectedItem()
-            mut = getMut(mutStr)
             if isDominant:
                 theta = empiricalPanel.getTheta()
                 beta = empiricalPanel.getBeta()
@@ -579,7 +589,7 @@ def report(fst):
             minRun = -1
             myFst  = -1
             statusPanel.setStatus('Done (preparing selection table, please wait...)', Color.GRAY)
-            if isDominant or isTemporal:
+            if isDominant:
                 pv = fdc.run_pv(data_dir =  lpath, version=2)
             else:
                 pv = fdc.run_pv(data_dir =  lpath, version=1)
@@ -588,7 +598,10 @@ def report(fst):
             sp = SelPanel(frame, chartPanel, selRec2.loci_list, pv,
                     systemPanel.getCI(), confLines, locusFst, isDominant,
                     systemPanel.getFDR())
-            info(frame, "Simulated Fst: %f" % (fst,))
+            if isTemporal:
+                info(frame, "Done")
+            else:
+                info(frame, "Simulated Fst: %f" % (fst,))
             statusPanel.setStatus('Done')
             sp.show()
             enablePanel(empiricalPanel)
@@ -597,19 +610,30 @@ def report(fst):
             enableAllMenus(True)
             systemPanel.enableChartFun = True
     else:
-        fda.release()
+        if isTemporal:
+            fdt.release()
+        else:
+            fda.release()
 
 def cancelFDist():
     global empiricalPanel, systemPanel, statusPanel, frame
-    global fda
+    global fda, fdt, isTemporal
     if not yesNo(frame, 'Are you sure you want to cancel (cancel will take a few seconds to complete)?'):
         return
-    fda.acquire()
-    fda.report_fun = None
-    fda.release()
-    fda.stop()
-    while len(fda.async.running) > 0:
-        remaining = str(len(fda.async.running))
+    if isTemporal:
+        fdt.acquire()
+        fdt.report_fun = None
+        fdt.release()
+        fdt.stop()
+        fd = fdt
+    else:
+        fda.acquire()
+        fda.report_fun = None
+        fda.release()
+        fda.stop()
+        fd = fda
+    while len(fd.async.running) > 0:
+        remaining = str(len(fd.async.running))
         time.sleep(0.1)
     enablePanel(empiricalPanel)
     empiricalPanel.cancel.setEnabled(False)
@@ -770,7 +794,7 @@ def displayCitation():
         info(frame, """If you use LosiTemp please cite:
         ...
         """)
-    if isDominant:
+    elif isDominant:
         info(frame, """If you use Mcheza please cite:
 Antao T, Beaumont MA (2011)
 Mcheza: A workbench to detect selection using dominant markers

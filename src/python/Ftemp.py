@@ -27,19 +27,21 @@ class FtempAsync():
         gens_sample = parameters['gens_sample']
         num_sims = parameters.get('num_sims', 20000)
         data_dir = parameters.get('data_dir', '.')
+        outFileName = data_dir + os.sep + 'out.dat'
         ne = self.run_ftemp(npops, ne, sample_size, gens_sample,
-            num_sims, data_dir)
+            num_sims, outFileName)
         output_files = {}
-        output_files['out.dat'] = open(data_dir + os.sep + 'out.dat', 'r')
+        output_files['out.dat'] = open(outFileName, 'r')
         return ne, output_files
 
     def run_ftemp(self, npops, ne, sample_size, gens_sample,
-            num_sims, data_dir):
+            num_sims, outFileName):
         print ["0", str(num_sims), str(sample_size),
                 str(ne), ] + map(lambda x:str(x), gens_sample)
-        Simulator.main(jarray.array(["0", str(num_sims), str(sample_size),
-                str(ne), ] + map(lambda x:str(x), gens_sample), String))
-
+        sim = Simulator()
+        sim.simulate(num_sims, int(ne), int(sample_size),
+                gens_sample, outFileName)
+        return 0.5 #ignore
 
 
 class Split(object):

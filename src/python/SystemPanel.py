@@ -27,7 +27,16 @@ class SystemPanel(JPanel, ActionListener, ItemListener, PropertyChangeListener):
         if e.getID() <> ActionEvent.ACTION_PERFORMED:
             return
         if e.getSource() == self.neutral:
-            warn(self, """
+            if self.isTemporal:
+                warn(self, """
+            Using a "neutral" mean Ne means doing a first simulation run to
+            remove potential selected loci for computing the initial mean Ne.
+            This effectively doubles the computation time, but it is the recommended
+            option.
+            If you are not sure of what you want, please check this option.
+            """)
+            else:
+                warn(self, """
             Using a "neutral" mean Fst means doing a first simulation run to
             remove potential selected loci for computing the initial mean Fst.
             This effectively doubles the computation time, but it is the recommended

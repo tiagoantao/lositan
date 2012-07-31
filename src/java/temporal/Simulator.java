@@ -1,6 +1,9 @@
 package temporal;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+
 /**
  *
  * @author Nina Overgaard Therkildsen
@@ -258,6 +261,25 @@ public class Simulator {
         return max;
     }
 
+    private void writeFile(String fileName, double[] heterozygosity, double[] ftemp) {
+        try {
+            // Create file
+            String line;
+            String fline;
+            FileWriter fstream = new FileWriter(fileName);
+            BufferedWriter out = new BufferedWriter(fstream);
+            for (int i=0; i< heterozygosity.length; i++) {
+                line = "%.4f %.4f%n";
+                fline = String.format(line, heterozygosity[i], ftemp[i]);
+                out.write(fline);
+            }
+            //Close the output stream
+            out.close();
+        } catch (Exception e){//Catch exception if any
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
     /**
      * Displays a matrix
      * @param matrix - Matrix to display
@@ -286,6 +308,80 @@ public class Simulator {
         }
         System.out.println("");
         System.out.println("");
+    }
+
+    public void simulate(int numberOfLoci, int populationSize, int sampleSize, int[] generationsToSample, String outFileName) {
+        double initialGeneration[];
+        double freqOverGenerations[][];
+        double sampleFreqOverGenerations[][];
+        double fTemp[];
+        double meanHetroz[];
+        int numberOfGenerations;
+
+        try {
+                if (numberOfLoci < 1 || numberOfLoci > 100000) {
+                    System.out.println("Number of Loci must be between 1 and 100000");
+                }
+                if (populationSize < 20 || populationSize > 5000) {
+                    System.out.println("WARNING: population_size is outside the expected range of " +
+                            "20-5000");
+                }
+                if (sampleSize > populationSize) {
+                    throw new IllegalArgumentException("sample_size must be less than population_size");
+                }
+                if (sampleSize < 10 || sampleSize > 200) {
+                    System.out.println("WARNING: sample_size is outside the expected range of " +
+                            "10-200");
+                }
+                if (vectorMax(generationsToSample) > 20) {
+                    System.out.println("WARNING: generations_to_sample is greater than the expected " +
+                            "maximum of 20");
+                }
+
+                System.out.println("");
+                System.out.println("Running with values of:");
+                System.out.println("number_of_loci = " + numberOfLoci);
+                System.out.println("samples_size = " + sampleSize);
+                System.out.println("population_size = " + populationSize);
+                System.out.print("generations_to_sample = " + generationsToSample[0] + " ");
+                for (int i=1; i<generationsToSample.length; i++) {
+                    System.out.print(generationsToSample[i] + " ");
+                }
+                System.out.println("");
+                System.out.println("");
+
+                numberOfGenerations = vectorMax(generationsToSample) + 1;
+
+                // create the initial generation
+                initialGeneration = createInitialGeneration(numberOfLoci);
+
+                // simulate the population up to the max generation number we want to sample
+                freqOverGenerations = simulateGenerations(initialGeneration, numberOfGenerations,
+                        populationSize);
+
+                // sample the population in the generations we're interested in
+                sampleFreqOverGenerations = sampleGenerations(freqOverGenerations, sampleSize, populationSize,
+                        generationsToSample);
+
+                // compute the ftemp vector
+                fTemp = computeFTemp(sampleFreqOverGenerations, sampleSize);
+
+                // compute the heterozygosity vector
+                meanHetroz = computeHetroz(sampleFreqOverGenerations);
+
+                // display final output in desired form
+                //    System.out.println("Locus number: heterozygosity, ftemp");
+                //    System.out.println("----------------------------------");
+                //   for (int i=0; i<numberOfLoci; i++) {
+                //        System.out.format("Locus %3d:     %.4f, %.4f%n", (i+1), meanHetroz[i], fTemp[i]);
+                //    }
+                
+                    writeFile(outFileName, meanHetroz, fTemp);
+
+        } catch (Exception e){ // if there are any exceptions catch them
+            System.err.println("ERROR: " + e.getMessage());
+        }
+
     }
 
     /**
