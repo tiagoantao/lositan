@@ -507,7 +507,9 @@ public class Simulator {
                 }
                 if (debugLevel == 0) {
                     for (int i=0; i<numberOfLoci; i++) {
-                        System.out.format("%.4f %.4f%n", meanHetroz[i], fTemp[i]);
+                        if (meanHetroz[i] > 0) {
+                            System.out.format("%.4f %.4f%n", meanHetroz[i], fTemp[i]);
+                        }
                     }
                 }
             }
