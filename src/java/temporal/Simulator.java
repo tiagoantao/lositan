@@ -269,9 +269,11 @@ public class Simulator {
             FileWriter fstream = new FileWriter(fileName);
             BufferedWriter out = new BufferedWriter(fstream);
             for (int i=0; i< heterozygosity.length; i++) {
-                line = "%.4f %.4f%n";
-                fline = String.format(line, heterozygosity[i], ftemp[i]);
-                out.write(fline);
+                if (heterozygosity[i] > 0) {
+                    line = "%.4f %.4f%n";
+                    fline = String.format(line, heterozygosity[i], ftemp[i]);
+                    out.write(fline);
+                }
             }
             //Close the output stream
             out.close();
