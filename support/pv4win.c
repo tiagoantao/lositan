@@ -115,7 +115,12 @@ main()
 		}
 	}
 	for(j=0;j<ndata;++j) {
-		fprintf(out,"%f %f %f %f\n",dx0[j],dy0[j],dnval[j],dpval[j]);
+           if (isnan(dy0[j])) {
+               fprintf(out,"%f nan nan nan\n", dx0[j]);
+           }
+           else {
+    		    fprintf(out,"%f %f %f %f\n", dx0[j], dy0[j], dnval[j], dpval[j]);
+           }
 	}
 	
 	closegfsr();
