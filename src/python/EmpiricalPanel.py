@@ -55,8 +55,9 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
                 'Expected total populations has to be at least the same as the number of populations under study.'
                 )
                 evt.getSource().setValue(self.knownPops)
-        if evt.getSource() == self.mut:
-            change = True
+        if not self.isTemporal:
+            if evt.getSource() == self.mut:
+                change = True
         if not change: return
         if self.menuHandles['item5000'].isEnabled():
             self.menuHandles['item5000'].setEnabled(False)

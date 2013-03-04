@@ -552,6 +552,7 @@ def report(fst):
             #    myFst = 0.005
             if isTemporal:
                 empiricalPanel.setNe(myNe) #actually it is Ne
+                print 5
             else:
                 empiricalPanel.setFst(myFst)
                 mutStr = empiricalPanel.mut.getSelectedItem()
@@ -580,7 +581,8 @@ def report(fst):
             else:
                 _fst, _sampSize = fdc.run_datacal(data_dir = lpath)
             if isTemporal:
-                pass #XXX
+                runFtempPart(False, selRec2, numSims, npops, nsamples, ne,
+                    sampSize, numCores)
             else:
                 runFDistPart(False, selRec2, mut, numSims, npops, nsamples,
                     myFst, sampSize, theta, beta, crit, numCores)
