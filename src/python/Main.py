@@ -947,7 +947,10 @@ def createMenuBar(manager):
     umenu.setMnemonic(KeyEvent.VK_U)
     menuBar.add(umenu)
     umenu.add(createMenuItem('Loci Analyzed', "ChooseLoci", manager))
-    umenu.add(createMenuItem('Populations Analyzed', "ChoosePops", manager))
+    if isTemporal:
+        umenu.add(createMenuItem('Samples Analyzed', "ChoosePops", manager))
+    else:
+        umenu.add(createMenuItem('Populations Analyzed', "ChoosePops", manager))
 
     if isDominant:
         fdmenu = JMenu("DFDist")
