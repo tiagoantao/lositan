@@ -3,5 +3,5 @@ cp support/*example* scratch
 cd scratch
 unzip ../support/allfdist >/dev/null
 cd ../src/java
-javac -source 1.5 -target 1.5 temporal/Simulator.java
-javac -source 1.5 -target 1.5 temporal/Datacal.java
+javac -cp . -source 1.6 -target 1.6 temporal/Simulator.java
+javac -cp . -source 1.6 -target 1.6 temporal/Datacal.java

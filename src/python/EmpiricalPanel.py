@@ -25,8 +25,8 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
                     self.systemPanel.force.setEnabled(True)
         else:
             if evt.getSource() == self.ne and evt.getPropertyName() == 'value':
-                new = float(evt.getNewValue())
-                old = float(evt.getOldValue())
+                new = int(evt.getNewValue())
+                old = int(evt.getOldValue())
                 if new < 0:
                     evt.getSource().setValue(old)
         if self.isDominant and evt.getSource() in [self.theta, self.beta1,
@@ -87,7 +87,7 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
     def setNe(self, ne):
         ignoreChanges =  self.ignoreChanges
         self.ignoreChanges = True
-        self.ne.setValue(ne)
+        self.ne.setValue(int(ne))
         self.ignoreChanges = ignoreChanges
 
     def getTheta(self):
@@ -142,13 +142,14 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
             ne.addPropertyChangeListener(self)
             self.ne = ne
             self.add(ne)
+            self.add(JLabel('Expected total samples'))
         else:
             self.add(JLabel('Attempted Fst'))
             fst = JFormattedTextField(NumberFormat.getNumberInstance(Locale.US))
             fst.addPropertyChangeListener(self)
             self.fst = fst
             self.add(fst)
-        self.add(JLabel('Expected total pops'))
+            self.add(JLabel('Expected total pops'))
         pops = JFormattedTextField(NumberFormat.getIntegerInstance(Locale.US))
         pops.addPropertyChangeListener(self)
         #self.pops = JComboBox(['1', '2', '4', '8', '12', '16'])

@@ -39,10 +39,16 @@ class FDistToolTipGenerator(StandardXYToolTipGenerator):
 
 class Chart(JPanel):
     def _createEmptyChart(self, dataset = None):
+        if self.isTemporal:
+            hText = "Hs"
+            fText = "Fgt"
+        else:
+            hText = "He"
+            fText = "Fst"
         chart = ChartFactory.createXYLineChart(
             self.title,               # chart title
-            "He",                     # x axis label
-            "Fst",                    # y axis label
+            hText,                    # x axis label
+            fText,                    # y axis label
             dataset,                  # data
             PlotOrientation.VERTICAL,
             True,                     # include legend
@@ -104,7 +110,7 @@ class Chart(JPanel):
 
             #self.markers.add(marker[0], max([0.0, marker[1]]))
             self.markers.add(marker[0], marker[1])
-        self.maxX += 0.1
+        self.maxX += 0.02
         self.maxX = min([1, self.maxX])
         self.maxY += 0.05
         self.minY -= 0.05
@@ -153,7 +159,7 @@ class Chart(JPanel):
         rangeAxis = plot.getRangeAxis()
         domainAxis = plot.getDomainAxis()
         rangeAxis.setRange(self.minY, self.maxY) #change
-        domainAxis.setRange(0.0, self.maxX)
+        domainAxis.setRange(self.minX, self.maxX)
         #plot.setBackgroundPaint(Color.lightGray);
         #plot.setAxisOffset(new RectangleInsets(5.0, 5.0, 5.0, 5.0));
         #plot.setDomainGridlinePaint(Color.white);
@@ -238,13 +244,18 @@ class Chart(JPanel):
             doc.close()
             #out.close()
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, isTemporal=False):
         JPanel()
+        self.isTemporal = isTemporal
         self.minY = -0.05
-        self.maxX = 1.0
+        self.minX = -0.02
+        self.maxX = 0.52
         self.maxY = 1.0
         self.drawCI = False
-        self.title = "Fst/He"
+        if isTemporal:
+            self.title = "Fgt/Hs"
+        else:
+            self.title = "Fst/He"
         self.labelSelected = True
         self.labelNeutral = False
         self.posColor = Color.RED

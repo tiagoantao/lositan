@@ -187,7 +187,8 @@ def chooseFile():
     chartPanel.resetData()
     loadGenePop(fname)
     if isTemporal:
-        loadTemporal(tname)
+        if not loadTemporal(tname):
+            return
     updateAll()
     enablePanel(empiricalPanel)
     empiricalPanel.cancel.setEnabled(False)
@@ -198,7 +199,7 @@ def loadFilePopNames(file):
     l = f.readline()
     i = 0
     while l<>'':
-        if i>len(popNames):
+        if i >= len(popNames):
             break
         popNames[i] = l.rstrip()
         i += 1
@@ -206,23 +207,26 @@ def loadFilePopNames(file):
     f.close()
     remPops = []
 
+
 def loadTemporal(fname):
     global tempSamples, popNames
     f = open(fname)
     l = f.readline()
     i = 0
     tempSamples = []
-    while l<>'':
-        if i>len(popNames):
+    while l != '':
+        if i > len(popNames):
             break
         tempSamples.append(int(l.rstrip()))
         i += 1
         l = f.readline()
     f.close()
-    if i!=len(popNames):
-        error(frame, "Number of temporal samples is less than the number of time points specified")
+    if i != len(popNames):
+        error(frame, "Number of temporal samples (%d) is less than the number of time points specified (%d)" % (i, len(popNames)))
+        return False
     else:
         info(frame, "Temporal points set at: %s" % str(tempSamples))
+        return True
 
 def loadPopNames():
     global frame, empiricalPanel
@@ -368,7 +372,7 @@ def endRunDatacal(after):
         empiricalPanel.setFst(fst)
     empiricalPanel.setSampleSize(sampSize)
     if isTemporal:
-       info (frame, "Dataset Ne: %f" % ne)
+       info (frame, "Dataset Ne: %d" % int(ne))
     else:
        info (frame, "Dataset Fst: %f" % fst)
     after()
@@ -896,7 +900,7 @@ def createChartPanel():
     if isDominant:
         chartPanel = Chart(980, 380)
     else:
-        chartPanel = Chart(980, 480)
+        chartPanel = Chart(980, 480, isTemporal)
     return chartPanel
 
 def createButton(text, command, manager):
@@ -912,7 +916,7 @@ def createMenuItem(text, command, manager):
     return mi
 
 def createMenuBar(manager):
-    global menuHandles, isDominant
+    global menuHandles, isDominant, isTemporal
     menuHandles = {}
     menuBar = JMenuBar()
 
@@ -927,14 +931,15 @@ def createMenuBar(manager):
     fmenu.addSeparator()
     fmenu.add(createMenuItem("Exit", "Exit", manager))
 
-    pmenu = JMenu("Populations")
-    menuHandles['Populations'] = pmenu
-    pmenu.setEnabled(False)
-    pmenu.setMnemonic(KeyEvent.VK_P)
-    menuBar.add(pmenu)
-    pmenu.add(createMenuItem('Load population names', "LoadPop", manager))
-    pmenu.add(createMenuItem('Edit population names', "EditPop", manager))
-    pmenu.add(createMenuItem('Save population names', "SavePop", manager))
+    if not isTemporal:
+        pmenu = JMenu("Populations")
+        menuHandles['Populations'] = pmenu
+        pmenu.setEnabled(False)
+        pmenu.setMnemonic(KeyEvent.VK_P)
+        menuBar.add(pmenu)
+        pmenu.add(createMenuItem('Load population names', "LoadPop", manager))
+        pmenu.add(createMenuItem('Edit population names', "EditPop", manager))
+        pmenu.add(createMenuItem('Save population names', "SavePop", manager))
 
     umenu = JMenu("Data used")
     menuHandles['Data used'] = umenu
@@ -946,13 +951,18 @@ def createMenuBar(manager):
 
     if isDominant:
         fdmenu = JMenu("DFDist")
+    elif isTemporal:
+        fdmenu = JMenu("FTemp")
     else:
         fdmenu = JMenu("FDist")
     menuHandles['FDist'] = fdmenu
     fdmenu.setEnabled(False)
     fdmenu.setMnemonic(KeyEvent.VK_D)
     menuBar.add(fdmenu)
-    fdmenu.add(createMenuItem('Run FDist', "RunFDist", manager))
+    if isTemporal:
+        fdmenu.add(createMenuItem('Run FTemp', "RunFDist", manager))
+    else:
+        fdmenu.add(createMenuItem('Run FDist', "RunFDist", manager))
     item5000 = createMenuItem('Run more 5000 sims', "Run5000", manager)
     item5000.setEnabled(False)
     menuHandles['item5000'] = item5000
@@ -1057,7 +1067,7 @@ def createFrame():
     global isDominant
     manager = doAction()
     if isTemporal:
-        frame = JFrame("LosiTemp - LOoking for selection In TEMPoral datasets")
+        frame = JFrame("LosiTemp - LOoking for Selection In TEMPoral datasets")
     elif isDominant:
         frame = JFrame("Mcheza - Dominant Selection Workbench")
     else:
