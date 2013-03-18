@@ -217,7 +217,12 @@ def loadTemporal(fname):
     while l != '':
         if i > len(popNames):
             break
-        tempSamples.append(int(l.rstrip()))
+        try:
+            tempSamples.append(int(l.rstrip()))
+        except:
+            error(frame, "Temporal file syntax error, please check")
+            return False
+
         i += 1
         l = f.readline()
     f.close()
