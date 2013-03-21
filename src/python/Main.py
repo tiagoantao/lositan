@@ -38,6 +38,7 @@ from LoadStatus import LoadDialog
 
 import Ftemp
 from temporal import Datacal
+import CPlot
 
 #There are quite a few global variables
 #  This is acceptable because the application won't grow that much
@@ -418,17 +419,21 @@ def getMut(mutStr):
     else:
         return 1
 
-def changeChartCI(changeNotes = True):
+
+def changeChartCI(changeNotes=True):
     global systemPanel, chartPanel
-    global fdc, selRec2, isDominant
-    if isDominant:
+    global fdc, selRec2, isDominant, isTemporal
+    if isTemporal:
+        confLines = CPlot.calcCPlot(systemPanel.getCI(), "out.dat")
+    elif isDominant:
         confLines = fdc.run_cplot(systemPanel.getCI(), lpath, version=2)
     else:
         confLines = fdc.run_cplot(systemPanel.getCI(), lpath, version=1)
     top, avg, bottom = [], [], []
     oldX = -1
     for group in confLines:
-        if oldX == float(group[0]): continue #strange but possible
+        if oldX == float(group[0]):
+            continue #strange but possible
         oldX = float(group[0])
         if not isDominant:
             top.append((float(group[0]), float(group[3])))
