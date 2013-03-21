@@ -424,7 +424,8 @@ def changeChartCI(changeNotes=True):
     global systemPanel, chartPanel
     global fdc, selRec2, isDominant, isTemporal
     if isTemporal:
-        confLines = CPlot.calcCPlot(systemPanel.getCI(), "out.dat")
+        confLines = CPlot.calcCPlot(systemPanel.getCI(),
+                                    lpath + os.sep + "out.dat")
     elif isDominant:
         confLines = fdc.run_cplot(systemPanel.getCI(), lpath, version=2)
     else:

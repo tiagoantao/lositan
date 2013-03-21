@@ -1,6 +1,6 @@
 def calcCPlot(ci, fname):
     f = open(fname)
-    bins = 100
+    bins = 200
     perc = 0.95
     poses = {}
     xmin = None
@@ -31,10 +31,18 @@ def calcCPlot(ci, fname):
     tops = []
     for i in range(len(lims) - 1):
         vals = []
+        if i == 0:
+            mi = 0
+        else:
+            mi = i - 1
+        if i == len(lims) - 2:
+            ma = len(lims) - 1
+        else:
+            ma = i + 2
         for x in xs:
-            if x < lims[i]:
+            if x < lims[mi]:
                 continue
-            if  x >= lims[i + 1]:
+            if  x >= lims[ma]:
                 break
             vals.extend(poses[x])
         vals.sort()
@@ -45,8 +53,8 @@ def calcCPlot(ci, fname):
         tops.append(top)
         bottoms.append(bottom)
     medians = [medians[0]] + medians
-    tops = [tops[0]] + tops
-    bottoms = [bottoms[0]] + bottoms
+    tops = [(tops[0] + medians[0]) / 2] + tops
+    bottoms = [(bottoms[0] + medians[0]) / 2] + bottoms
     confLines = []
     for i in range(len(lims)):
         confLines.append((lims[i], bottoms[i], medians[i], tops[i]))
