@@ -5,22 +5,30 @@ def calcCPlot(ci, fname):
     poses = {}
     xmin = None
     xmax = None
+    allxs = []
     for l in f:
         toks = l.rstrip().split(" ")
         x = float(toks[0])
         y = float(toks[1])
         poses.setdefault(x, []).append(y)
+        allxs.append(x)
         if xmin is None or xmin > x:
             xmin = x
         if xmax is None or xmax < x:
             xmax = x
     xs = poses.keys()
     xs.sort()
+    allxs.sort()
 
     currBins = min([bins, len(set(xs))])
     lims = []
+    prev = None
     for i in range(currBins - 1):
-        lims.append(xs[i * len(xs) / (currBins)])
+        curr = allxs[i * len(allxs) / (currBins)]
+        if curr == prev:
+            continue
+        prev = curr
+        lims.append(curr)
     lims.append(xmax + 0.01)
     lims = list(set(lims))
     lims.sort()

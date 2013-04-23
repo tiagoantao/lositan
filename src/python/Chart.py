@@ -110,7 +110,7 @@ class Chart(JPanel):
 
             #self.markers.add(marker[0], max([0.0, marker[1]]))
             self.markers.add(marker[0], marker[1])
-        self.maxX += 0.02
+        self.maxX = max([0.501, self.maxX + 0.001])
         self.maxX = min([1, self.maxX])
         self.maxY += 0.05
         self.minY -= 0.05
@@ -247,9 +247,9 @@ class Chart(JPanel):
     def __init__(self, width, height, isTemporal=False):
         JPanel()
         self.isTemporal = isTemporal
-        self.minY = -0.05
-        self.minX = -0.02
-        self.maxX = 0.52
+        self.minY = 0.0  # -0.05
+        self.minX = 0.0  # -0.02
+        self.maxX = 0.5  # 0.52
         self.maxY = 1.0
         self.drawCI = False
         if isTemporal:
@@ -271,4 +271,3 @@ class Chart(JPanel):
         self.cp.setDisplayToolTips(True)
         self.cp.setPreferredSize(Dimension(width, height))
         self.add(self.cp)
-
