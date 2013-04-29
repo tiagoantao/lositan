@@ -1,6 +1,6 @@
 def calcCPlot(ci, fname):
     f = open(fname)
-    bins = 200
+    bins = 50
     perc = 0.95
     poses = {}
     xmin = None
@@ -24,12 +24,13 @@ def calcCPlot(ci, fname):
     lims = []
     prev = None
     for i in range(currBins - 1):
-        curr = allxs[i * len(allxs) / (currBins)]
+        curr = allxs[i * len(allxs) / currBins]
         if curr == prev:
             continue
         prev = curr
         lims.append(curr)
-    lims.append(xmax + 0.01)
+    #lims.append(xmax + 0.01)
+    lims.append(allxs[-1])
     lims = list(set(lims))
     lims.sort()
 
