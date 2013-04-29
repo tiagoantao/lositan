@@ -1,10 +1,7 @@
-def calcCPlot(ci, fname):
+def calcCPlot(perc, fname):
     f = open(fname)
     bins = 50
-    perc = 0.95
     poses = {}
-    xmin = None
-    xmax = None
     allxs = []
     for l in f:
         toks = l.rstrip().split(" ")
@@ -12,46 +9,31 @@ def calcCPlot(ci, fname):
         y = float(toks[1])
         poses.setdefault(x, []).append(y)
         allxs.append(x)
-        if xmin is None or xmin > x:
-            xmin = x
-        if xmax is None or xmax < x:
-            xmax = x
     xs = poses.keys()
     xs.sort()
     allxs.sort()
 
-    currBins = min([bins, len(set(xs))])
+    currBins = min([bins, len(xs)])
     lims = []
-    prev = None
-    for i in range(currBins - 1):
-        curr = allxs[i * len(allxs) / currBins]
+    prev = -1
+    for i in range(currBins):
+        curr = allxs[int(round(float(i) * len(allxs) / currBins))]
         if curr == prev:
             continue
         prev = curr
         lims.append(curr)
-    #lims.append(xmax + 0.01)
-    lims.append(allxs[-1])
-    lims = list(set(lims))
-    lims.sort()
+    lims.append(allxs[-1] + 0.001)
 
     nslices = int(round(1 / ((1 - perc) / 2)))
     medians = []
     bottoms = []
     tops = []
-    for i in range(len(lims) - 1):
+    for i in range(1, len(lims)):
         vals = []
-        if i == 0:
-            mi = 0
-        else:
-            mi = i - 1
-        if i == len(lims) - 2:
-            ma = len(lims) - 1
-        else:
-            ma = i + 2
         for x in xs:
-            if x < lims[mi]:
+            if x < lims[i - 1]:
                 continue
-            if  x >= lims[ma]:
+            if  x >= lims[i]:
                 break
             vals.extend(poses[x])
         vals.sort()
