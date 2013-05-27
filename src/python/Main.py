@@ -120,7 +120,6 @@ def updateAll():
         chartPanel.updateChartDataset()
         empiricalPanel.knownPops = countPops(selRec2)
         empiricalPanel.ignoreChanges = False
-
     runDatacal(after)
 
 def countPops(rec2):
@@ -192,7 +191,6 @@ def chooseFile():
             return
     updateAll()
     enablePanel(empiricalPanel)
-    empiricalPanel.cancel.setEnabled(False)
 
 def loadFilePopNames(file):
     global popNames, remPops
@@ -243,7 +241,6 @@ def loadPopNames():
         loadFilePopNames(file)
         updateAll()
         enablePanel(empiricalPanel)
-        empiricalPanel.cancel.setEnabled(False)
 
 def useExampleData():
     global empiricalPanel, systemPanel, chartPanel, isDominant, isTemporal
@@ -261,7 +258,6 @@ def useExampleData():
         loadFilePopNames(lpath + os.sep + 'example.txt')
     updateAll()
     enablePanel(empiricalPanel)
-    empiricalPanel.cancel.setEnabled(False)
 
 def updatePopNames(popList):
     global popNames
@@ -343,6 +339,7 @@ def endRunDatacal(after):
         ne = dc.getNe()
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
+        print fst, sampSize
     if not isTemporal:
         if fst < 0.0:
             systemPanel.force.setEnabled(False)
@@ -567,7 +564,6 @@ def report(fst):
             #    myFst = 0.005
             if isTemporal:
                 empiricalPanel.setNe(myNe) #actually it is Ne
-                print 5
             else:
                 empiricalPanel.setFst(myFst)
                 mutStr = empiricalPanel.mut.getSelectedItem()
@@ -622,7 +618,6 @@ def report(fst):
             statusPanel.setStatus('Done')
             sp.show()
             enablePanel(empiricalPanel)
-            empiricalPanel.cancel.setEnabled(False)
             enablePanel(systemPanel)
             enableAllMenus(True)
             systemPanel.enableChartFun = True
@@ -653,7 +648,6 @@ def cancelFDist():
         remaining = str(len(fd.async.running))
         time.sleep(0.1)
     enablePanel(empiricalPanel)
-    empiricalPanel.cancel.setEnabled(False)
     enablePanel(systemPanel)
     enableAllMenus()
     statusPanel.setStatus('Computation interrupted')
@@ -671,7 +665,6 @@ def runFDist(more = False):
         pass  #Its ok if it doesn't exist
     disableAllMenus()
     disablePanel(empiricalPanel)
-    empiricalPanel.cancel.setEnabled(True)
     disablePanel(systemPanel)
     npops = empiricalPanel.getTotalPops()
     nsamples = countPops(selRec2)

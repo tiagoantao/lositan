@@ -204,8 +204,3 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
         run.setActionCommand('RunFDist')
         self.run = run
         self.add(run)
-        cancel = JButton('Stop')
-        cancel.addActionListener(manager)
-        cancel.setActionCommand('CancelFDist')
-        self.cancel = cancel
-        #self.add(cancel)
