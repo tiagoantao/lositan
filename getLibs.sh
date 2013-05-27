@@ -14,7 +14,7 @@ mv download iText-5.0.2.jar
 wget http://sourceforge.net/projects/jython/files/jython/2.5.1/jython_installer-2.5.1.jar/download
 mv download jython_installer-2.5.1.jar
 
-git clone git://github.com/tiagoantao/biopython.git
+git clone git://github.com/biopython/biopython.git
 
 rm -rf tmp
 mkdir tmp
