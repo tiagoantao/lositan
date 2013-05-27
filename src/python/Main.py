@@ -509,14 +509,15 @@ def report(fst):
             nsamples = countPops(selRec2)
             numCores = systemPanel.getNumCores()
             sampSize = empiricalPanel.getSampleSize()
-            mutStr = empiricalPanel.mut.getSelectedItem()
-            mut = getMut(mutStr)
             if isDominant:
                 theta = empiricalPanel.getTheta()
                 beta = empiricalPanel.getBeta()
                 crit = empiricalPanel.getCrit()
+                mut = None
             else:
                 theta = beta = crit = None
+                mutStr = empiricalPanel.mut.getSelectedItem()
+                mut = getMut(mutStr)
             if isTemporal:
                 pass #XXX
             else:
@@ -566,8 +567,9 @@ def report(fst):
                 empiricalPanel.setNe(myNe) #actually it is Ne
             else:
                 empiricalPanel.setFst(myFst)
-                mutStr = empiricalPanel.mut.getSelectedItem()
-                mut = getMut(mutStr)
+                if not isDominant:
+                    mutStr = empiricalPanel.mut.getSelectedItem()
+                    mut = getMut(mutStr)
             npops = empiricalPanel.getTotalPops()
             nsamples = countPops(selRec2)
             numCores = systemPanel.getNumCores()
@@ -675,13 +677,14 @@ def runFDist(more = False):
         ne = empiricalPanel.getNe()
     else:
         fst = empiricalPanel.getFst()
-    if not isTemporal:
+    if not isTemporal and not isDominant:
         mutStr = empiricalPanel.mut.getSelectedItem()
         mut = getMut(mutStr)
     if isDominant:
         theta = empiricalPanel.getTheta()
         beta = empiricalPanel.getBeta()
         crit = empiricalPanel.getCrit()
+        mut = None
     else:
         theta = beta = crit = None
     if more:
