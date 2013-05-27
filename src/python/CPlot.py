@@ -15,6 +15,8 @@ def calcCPlot(perc, fname):
 
     currBins = min([bins, len(xs)])
     lims = []
+    perBin = len(allxs) / currBins
+    print perBin
     prev = -1
     for i in range(currBins):
         curr = allxs[int(round(float(i) * len(allxs) / currBins))]
@@ -33,10 +35,17 @@ def calcCPlot(perc, fname):
         for x in xs:
             if x < lims[i - 1]:
                 continue
-            if  x >= lims[i]:
+            if x > lims[i]:
+                break
+            if x == lims[i]:
+                if len(vals) < perBin:
+                    lvals = len(vals)
+                    vals.extend(poses[x][:perBin - lvals])
+                    poses[x] = poses[x][perBin - lvals:]
                 break
             vals.extend(poses[x])
         vals.sort()
+        print i, len(vals)
         median = vals[len(vals) / 2]
         bottom = vals[len(vals) / nslices]
         top = vals[(nslices - 1) * len(vals) / nslices]
@@ -44,8 +53,10 @@ def calcCPlot(perc, fname):
         tops.append(top)
         bottoms.append(bottom)
     medians = [medians[0]] + medians
-    tops = [(tops[0] + medians[0]) / 2] + tops
-    bottoms = [(bottoms[0] + medians[0]) / 2] + bottoms
+    tops = [tops[0]] + tops
+    #tops = [(tops[0] + medians[0]) / 2] + tops
+    bottoms = [bottoms[0]] + bottoms
+    #bottoms = [(bottoms[0] + medians[0]) / 2] + bottoms
     confLines = []
     for i in range(len(lims)):
         confLines.append((lims[i], bottoms[i], medians[i], tops[i]))
