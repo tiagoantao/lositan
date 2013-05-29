@@ -27,7 +27,7 @@ rm -rf jython
 cd biopython
 rm -rf Tests/ Scripts/ BioSQL/ CONTRIB DEPRECATED LICENSE NEWS MANIFEST.in Doc/ setup.py README
 cd Bio
-ls -I PopGen -I __init__.py -I ParserSupport.py -I File.py | xargs rm -rf
+ls -I _py3k -I PopGen -I __init__.py -I ParserSupport.py -I File.py | xargs rm -rf
 cd ..
 cd ..
 cp -R biopython/Bio ../libs
