@@ -67,7 +67,7 @@ public class Simulator {
         double samplingVariance = 0.15;
 		double[] samplingVector;  
         for (int i=0; i<numberOfLoci; i++) {  
-            samplingVector[i] = Math.round(sampleSize * (1 - Math.random()*samplingVariance))
+            samplingVector[i] = Math.round(sampleSize * (1 - Math.random()*samplingVariance));
         }
         return samplingVector;
     }
