@@ -10,7 +10,7 @@ import java.io.FileWriter;
  * @author Samitha Samaranayake
  */
 public class Simulator {
-
+	    
     /**
      * Creates the allele frequency for each locus in the initial generation. The frequency values are
      * picked such that the frequency is sampled from a distribution that will result in a uniform
@@ -60,6 +60,20 @@ public class Simulator {
     }
 
     /**
+     * Creates a vector of specific realized sample sizes for each simulated locus. 
+     * Varies between 0.85 and 1 * the input sampleSize to mimic the presence of missing data and reduce discretization of He and Ftemp
+     */
+    private double[] createSamplingVector(double numberOfLoci, int sampleSize) {
+        double samplingVariance = 0.15;
+		double[] samplingVector;  
+        for (int i=0; i<numberOfLoci; i++) {  
+            samplingVector[i] = Math.round(sampleSize * (1 - Math.random()*samplingVariance))
+        }
+        return samplingVector;
+    }
+    
+   
+    /**
      * Simulates the dynamics of the population over a number of generations
      * @param initialGeneration - The allele frequencies of the initial generation
      * @param numberOfGenerations - The number of generations to simulate
@@ -88,13 +102,13 @@ public class Simulator {
      * Samples a subset of the population from a caller specified set of generations
      * @param freqOverGenerations - Allele frequencies over all generations
      * @param generationsToSample - The set of generations from which to sample
-     * @param sampleSize - The sample size for each generation
+     * @param sampleSize - The sample size for each generation. No longer in use
+     * @param samplingVector - A vector a specific sample size for each locus in every generation
      * @param populationSize - The size of the population
      * @throws none
      * @returns Allele frequencies for the sample set in each of the specified generations
      */
-    public double[][] sampleGenerations(double[][] freqOverGenerations, int sampleSize,
-            int populationSize, int[] generationsToSample) {
+    public double[][] sampleGenerations(double[][] freqOverGenerations, int populationSize, int[] generationsToSample, double[] samplingVector) {
         double[][] sampleFreqOverGenerations = new double[generationsToSample.length][freqOverGenerations[0].length];
         double temp;
         int adjustedPopulation;
@@ -105,7 +119,7 @@ public class Simulator {
                 temp = freqOverGenerations[generationsToSample[i]][j]*(populationSize*2);
                 adjustedPopulation = populationSize*2; // population size after members are sampled out
                 // sample without replacement
-                for (int k=0;k<(sampleSize*2);k++) {
+                for (int k=0;k<(samplingVector[j]*2);k++) {
                    // pick a random number between 0 and the adjustedPopulation size
                     if (Math.random()*adjustedPopulation < temp) {
                         // we've picked an allele of the type we're counting if the random number
@@ -116,8 +130,8 @@ public class Simulator {
                     // remove a member of the population at each step
                     adjustedPopulation = adjustedPopulation - 1;
                 }
-                // divide by sampleSize to get the frequency
-                sampleFreqOverGenerations[i][j] = sampleFreqOverGenerations[i][j]/(sampleSize*2);
+                // divide by the sampleSize for the given locus to get the frequency
+                sampleFreqOverGenerations[i][j] = sampleFreqOverGenerations[i][j]/(samplingVector[j]*2);
             }
         }
         return sampleFreqOverGenerations;
@@ -129,25 +143,25 @@ public class Simulator {
      * @throws none
      * @returns ftemp value for each locus
      */
-    public double[] computeFTemp(double[][] freqMatrix, int sampleSize) {
+    public double[] computeFTemp(double[][] freqMatrix, double[] samplingVector) {
         double fTemp[] = new double[freqMatrix[0].length];
         double mean, var;
         for (int i=0; i < fTemp.length; i++) {
             mean = findColMean(freqMatrix, i);
             var = findColVariance(freqMatrix, mean, i);
-            fTemp[i] = var/(mean*(1-mean)) - (double)1/(2*sampleSize);
+            fTemp[i] = var/(mean*(1-mean)) - (double)1/(2*samplingVector[i]);
         }
         return fTemp;
     }
 
-    public double[] computeFTemp(double[][] freqMatrix, double[] sampleSize, int[] numValidGenerations,
+    public double[] computeFTemp(double[][] freqMatrix, double[] samplingVector, int[] numValidGenerations,
             int[][] validGenerations ) {
         double fTemp[] = new double[freqMatrix[0].length];
         double mean, var;
         for (int i=0; i < fTemp.length; i++) {
             mean = findColMean(freqMatrix, i, numValidGenerations[i]);
             var = findColVariance(freqMatrix, mean, i, numValidGenerations[i], validGenerations[i]);
-            fTemp[i] = var/(mean*(1-mean)) - (double)1/(2*sampleSize[i]);
+            fTemp[i] = var/(mean*(1-mean)) - (double)1/(2*samplingVector[i]);
         }
         return fTemp;
     }
@@ -319,6 +333,7 @@ public class Simulator {
         double fTemp[];
         double meanHetroz[];
         int numberOfGenerations;
+		double[] samplingVector;
 
         try {
                 if (numberOfLoci < 1 || numberOfLoci > 100000) {
@@ -354,6 +369,9 @@ public class Simulator {
 
                 numberOfGenerations = vectorMax(generationsToSample) + 1;
 
+				// create sampling vector
+				samplingVector = createSamplingVector(numberOfLoci, sampleSize);
+
                 // create the initial generation
                 initialGeneration = createInitialGeneration(numberOfLoci);
 
@@ -362,11 +380,11 @@ public class Simulator {
                         populationSize);
 
                 // sample the population in the generations we're interested in
-                sampleFreqOverGenerations = sampleGenerations(freqOverGenerations, sampleSize, populationSize,
-                        generationsToSample);
+                sampleFreqOverGenerations = sampleGenerations(freqOverGenerations, populationSize,
+                        generationsToSample, samplingVector);
 
                 // compute the ftemp vector
-                fTemp = computeFTemp(sampleFreqOverGenerations, sampleSize);
+                fTemp = computeFTemp(sampleFreqOverGenerations, samplingVector);
 
                 // compute the heterozygosity vector
                 meanHetroz = computeHetroz(sampleFreqOverGenerations);
@@ -467,6 +485,9 @@ public class Simulator {
 
                 numberOfGenerations = simulator.vectorMax(generationsToSample) + 1;
 
+  				// create sampling vector
+				samplingVector = createSamplingVector(numberOfLoci, sampleSize);
+
                 // create the initial generation
                 initialGeneration = simulator.createInitialGeneration(numberOfLoci);
 
@@ -479,15 +500,15 @@ public class Simulator {
                 }
 
                 // sample the population in the generations we're interested in
-                sampleFreqOverGenerations = simulator.sampleGenerations(freqOverGenerations, sampleSize, populationSize,
-                        generationsToSample);
+                sampleFreqOverGenerations = simulator.sampleGenerations(freqOverGenerations, populationSize,
+                        generationsToSample, samplingVector);
                 if (debugLevel > 0) {
                     System.out.println("Display sampleFreqOverGenerations");
                     simulator.displayOutput(sampleFreqOverGenerations);
                 }
 
                 // compute the ftemp vector
-                fTemp = simulator.computeFTemp(sampleFreqOverGenerations, sampleSize);
+                fTemp = simulator.computeFTemp(sampleFreqOverGenerations, samplingVector);
                 if (debugLevel > 0) {
                     System.out.println("Display FTemp");
                     simulator.displayOutput(fTemp);
