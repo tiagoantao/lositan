@@ -16,7 +16,6 @@ public class Simulator {
      * picked such that the frequency is sampled from a distribution that will result in a uniform
      * distribution of heterozygosity.
      * @param numberOfLoci - Number of loci to create
-     * @throws none
      * @returns frequency values for the first generation
      */
     private double[] createInitialGeneration(int numberOfLoci) {
@@ -44,7 +43,6 @@ public class Simulator {
      * of the new generation.
      * @param prevFreq - Allele frequencies in the previous generation
      * @param populationSize - Size of the population from which to regenerate
-     * @throws none
      * @returns Allele frequencies of the current generation
      */
     private double computeNewFreq(double prevFreq, int populationSize) {
@@ -63,9 +61,9 @@ public class Simulator {
      * Creates a vector of specific realized sample sizes for each simulated locus. 
      * Varies between 0.85 and 1 * the input sampleSize to mimic the presence of missing data and reduce discretization of He and Ftemp
      */
-    private double[] createSamplingVector(double numberOfLoci, int sampleSize) {
+    private double[] createSamplingVector(int numberOfLoci, int sampleSize) {
         double samplingVariance = 0.15;
-		double[] samplingVector;  
+		double[] samplingVector = new double[numberOfLoci];
         for (int i=0; i<numberOfLoci; i++) {  
             samplingVector[i] = Math.round(sampleSize * (1 - Math.random()*samplingVariance));
         }
@@ -78,7 +76,6 @@ public class Simulator {
      * @param initialGeneration - The allele frequencies of the initial generation
      * @param numberOfGenerations - The number of generations to simulate
      * @param populationSize - The size of the population (needed for regeneration)
-     * @throws none
      * @returns Allele frequencies over all generations
      */
     private double[][] simulateGenerations(double[] initialGeneration, int numberOfGenerations,
@@ -101,14 +98,13 @@ public class Simulator {
     /**
      * Samples a subset of the population from a caller specified set of generations
      * @param freqOverGenerations - Allele frequencies over all generations
-     * @param generationsToSample - The set of generations from which to sample
-     * @param sampleSize - The sample size for each generation. No longer in use
-     * @param samplingVector - A vector a specific sample size for each locus in every generation
      * @param populationSize - The size of the population
-     * @throws none
+     * @param generationsToSample - The set of generations from which to sample
+     * @param samplingVector - A vector a specific sample size for each locus in every generation
      * @returns Allele frequencies for the sample set in each of the specified generations
      */
-    public double[][] sampleGenerations(double[][] freqOverGenerations, int populationSize, int[] generationsToSample, double[] samplingVector) {
+    public double[][] sampleGenerations(double[][] freqOverGenerations, int populationSize, int[] generationsToSample,
+                                        double[] samplingVector) {
         double[][] sampleFreqOverGenerations = new double[generationsToSample.length][freqOverGenerations[0].length];
         double temp;
         int adjustedPopulation;
@@ -139,8 +135,8 @@ public class Simulator {
 
     /**
      * Computes the ftemp metric for each locus using the formula var[p]/E[p](1-E[p]) - 1/2n
-     * @param freqOverGenerations - Allele frequencies over all generations
-     * @throws none
+     * @param freqMatrix - Allele frequencies over all generations
+     * @param samplingVector - A vector a specific sample size for each locus in every generation
      * @returns ftemp value for each locus
      */
     public double[] computeFTemp(double[][] freqMatrix, double[] samplingVector) {
@@ -168,8 +164,7 @@ public class Simulator {
 
     /**
      * Computes the heterozygosity for each locus using the formula 2p(1-p)
-     * @param freqOverGenerations - Allele frequencies over all generations
-     * @throws none
+     * @param freqMatrix - Allele frequencies over all generations
      * @returns heterozygosity for each locus
      */
     public double[] computeHetroz(double[][] freqMatrix) {
@@ -206,7 +201,6 @@ public class Simulator {
      * Finds the mean value of a given column in a matrix
      * @param matrix - Input matrix
      * @param column - The column number of which to compute the mean
-     * @throws none
      * @returns The mean value of the column of interest
      */
     private double findColMean(double[][] matrix, int column) {
@@ -231,15 +225,14 @@ public class Simulator {
      * Finds the population variance (NOT sample variance) of a given column in a matrix.
      * @param matrix - Input matrix
      * @param column - The column number of which to compute the variance
-     * @throws none
      * @returns The variance of the column of interest
      */
-    private double findColVariance(double[][] vector, double mean, int column) {
+    private double findColVariance(double[][] matrix, double mean, int column) {
         double var=0;
-        for (int i=0;i < vector.length; i++) {
-            var = var + Math.pow((vector[i][column] - mean),2);
+        for (int i=0;i < matrix.length; i++) {
+            var = var + Math.pow((matrix[i][column] - mean),2);
         }
-        var = var/vector.length;
+        var = var/matrix.length;
         return var;
     }
     private double findColVariance(double[][] vector, double mean, int column, int numValidGens,
@@ -257,13 +250,12 @@ public class Simulator {
      /**
      * Finds the maximum value of the vector
      * @param matrix - Input vector
-     * @throws none
      * @returns The maximum value in the vector
      */
-    private int vectorMax(int[] vector) {
+    private int vectorMax(int[] matrix) {
         int max=0;
-        for (int i=0;i < vector.length; i++) {
-           max = Math.max(max, vector[i]);
+        for (int i=0;i < matrix.length; i++) {
+           max = Math.max(max, matrix[i]);
         }
         return max;
     }
@@ -299,7 +291,6 @@ public class Simulator {
     /**
      * Displays a matrix
      * @param matrix - Matrix to display
-     * @throws none
      * @returns none
      */
     public void displayOutput(double[][] matrix) {
@@ -315,7 +306,6 @@ public class Simulator {
     /**
      * Displays a vector
      * @param vector - Vector to display
-     * @throws none
      * @returns none
      */
     public void displayOutput(double[] vector) {
@@ -417,6 +407,7 @@ public class Simulator {
         double fTemp[];
         double meanHetroz[];
         int numberOfGenerations;
+        double[] samplingVector;
 
         // set default values
         int numberOfLoci = 1000;
@@ -486,7 +477,7 @@ public class Simulator {
                 numberOfGenerations = simulator.vectorMax(generationsToSample) + 1;
 
   				// create sampling vector
-				samplingVector = createSamplingVector(numberOfLoci, sampleSize);
+				samplingVector = simulator.createSamplingVector(numberOfLoci, sampleSize);
 
                 // create the initial generation
                 initialGeneration = simulator.createInitialGeneration(numberOfLoci);
@@ -500,8 +491,7 @@ public class Simulator {
                 }
 
                 // sample the population in the generations we're interested in
-                sampleFreqOverGenerations = simulator.sampleGenerations(freqOverGenerations, populationSize,
-                        generationsToSample, samplingVector);
+                sampleFreqOverGenerations = simulator.sampleGenerations(freqOverGenerations, populationSize, generationsToSample, samplingVector);
                 if (debugLevel > 0) {
                     System.out.println("Display sampleFreqOverGenerations");
                     simulator.displayOutput(sampleFreqOverGenerations);
