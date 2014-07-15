@@ -362,7 +362,10 @@ def endRunDatacal(after):
             if lhe=="-nan": lhe="nan"
             if lhe=="-nan": lhe="nan"
             if lfst=="-nan": lfst="nan"
-            if float(lfst)<-10.0: lfst="nan"
+            try:
+                if float(lfst)<-10.0: lfst="nan"
+            excep ValueError:
+                lfst = 'nan'
         locusFst.append((float(lhe), float(lfst)))
         l = f.readline()
     while len(locusFst)<len(selRec2.loci_list):
