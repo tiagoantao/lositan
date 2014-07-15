@@ -570,6 +570,8 @@ def report(fst):
                 if not isDominant:
                     mutStr = empiricalPanel.mut.getSelectedItem()
                     mut = getMut(mutStr)
+                else:
+                    mut = None
             npops = empiricalPanel.getTotalPops()
             nsamples = countPops(selRec2)
             numCores = systemPanel.getNumCores()
