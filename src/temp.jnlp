@@ -2,12 +2,12 @@
 <!-- JNLP File for lositan2 -->
 <jnlp
     spec="1.0+"
-    codebase="http://popgen.eu/soft/lositemp/code2"
+    codebase="http://popgen.net/soft/lositemp/code2"
     href="temp.jnlp">
     <information>
         <title>LosiTemp - LOoking for selection In TEMPoral datasets</title>
         <vendor>Tiago Antao</vendor>
-        <homepage href="http://popgen.eu/soft/lositemp"/>
+        <homepage href="http://popgen.net/soft/lositemp"/>
         <description>LosiTemp Application</description>
         <description kind="short">A workbench for selection detection in temporal datasets</description>
         <offline-allowed/>

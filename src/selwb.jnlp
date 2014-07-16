@@ -2,12 +2,12 @@
 <!-- JNLP File for lositan2 -->
 <jnlp
     spec="1.0+"
-    codebase="http://popgen.eu/soft/lositan/code2"
+    codebase="http://popgen.net/soft/lositan/code2"
     href="selwb.jnlp">
     <information>
         <title>LOSITAN - Selection Workbench</title>
         <vendor>Tiago Antao</vendor>
-        <homepage href="http://popgen.eu/soft/lositan"/>
+        <homepage href="http://popgen.net/soft/lositan"/>
         <description>LOSITAN Application</description>
         <description kind="short">A workbench for selection detection</description>
         <offline-allowed/>

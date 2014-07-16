@@ -2,12 +2,12 @@
 <!-- JNLP File for lositan2 -->
 <jnlp
     spec="1.0+"
-    codebase="http://popgen.eu/soft/mcheza/code2"
+    codebase="http://popgen.net/soft/mcheza/code2"
     href="mcheza.jnlp">
     <information>
         <title>Mcheza - Selection Workbench</title>
         <vendor>Tiago Antao</vendor>
-        <homepage href="http://popgen.eu/soft/mcheza"/>
+        <homepage href="http://popgen.net/soft/mcheza"/>
         <description>MCHEZA Application</description>
         <description kind="short">A workbench for selection detection</description>
         <offline-allowed/>

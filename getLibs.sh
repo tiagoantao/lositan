@@ -11,10 +11,14 @@ wget http://www.gtlib.gatech.edu/pub/apache/xmlgraphics/batik/batik-1.7.zip
 wget http://sourceforge.net/projects/itext/files/iText/iText5.0.2/iText-5.0.2.jar/download
 mv download iText-5.0.2.jar
 
-wget http://sourceforge.net/projects/jython/files/jython/2.5.1/jython_installer-2.5.1.jar/download
-mv download jython_installer-2.5.1.jar
+#wget http://sourceforge.net/projects/jython/files/jython/2.5.1/jython_installer-2.5.1.jar/download
+#mv download jython_installer-2.5.1.jar
+wget "http://search.maven.org/remotecontent?filepath=org/python/jython-standalone/2.7-b2/jython-standalone-2.7-b2.jar" -O jython.jar
 
 git clone git://github.com/biopython/biopython.git
+cd biopython
+git checkout tags/biopython-162
+cd ..
 
 rm -rf tmp
 mkdir tmp

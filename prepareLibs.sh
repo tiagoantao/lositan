@@ -14,13 +14,13 @@ cd ../..
 rm -rf batik-1.7
 
 
-mkdir jython
-cd jython
-unzip ../jython_installer-2.5.1.jar >/dev/null
-cp jython.jar ../../libs
+cp jython.jar ../libs
+mkdir jopen
+cd jopen
+unzip ../jython.jar
 mv Lib ../../libs
 cd ..
-rm -rf jython
+rm -rf jopen
 
 #cp iText-5.0.2.jar ../libs
 
