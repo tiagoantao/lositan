@@ -364,7 +364,7 @@ def endRunDatacal(after):
             if lfst=="-nan": lfst="nan"
             try:
                 if float(lfst)<-10.0: lfst="nan"
-            excep ValueError:
+            except ValueError:
                 lfst = 'nan'
         locusFst.append((float(lhe), float(lfst)))
         l = f.readline()
