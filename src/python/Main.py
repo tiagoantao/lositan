@@ -359,19 +359,29 @@ def endRunDatacal(after):
             myPos += 1
         else:
             lhe, lfst = l.rstrip().split(' ')
-            if lhe=="-nan": lhe="nan"
-            if lhe=="-nan": lhe="nan"
-            if lfst=="-nan": lfst="nan"
+            if lhe == "-nan":
+                lhe = "nan"
+            if lhe == "-nan":
+                lhe = "nan"
+            if lfst == "-nan":
+                lfst = "nan"
             try:
-                if float(lfst)<-10.0: lfst="nan"
+                if float(lfst) < -10.0:
+                    lfst = "nan"
             except ValueError:
                 lfst = 'nan'
+            try:
+                if float(lhe) < -10.0:
+                    lhe = "nan"
+            except ValueError:
+                lhe = 'nan'
         locusFst.append((float(lhe), float(lfst)))
         l = f.readline()
-    while len(locusFst)<len(selRec2.loci_list):
+    while len(locusFst) < len(selRec2.loci_list):
         locusFst.append(None)
     f.close()
-    if sampSize > 50: sampSize = 50
+    if sampSize > 50:
+        sampSize = 50
     if isTemporal:
         empiricalPanel.setNe(ne)
     else:
