@@ -197,7 +197,7 @@ def loadFilePopNames(file):
     f = open(str(file))
     l = f.readline()
     i = 0
-    while l<>'':
+    while l != '':
         if i >= len(popNames):
             break
         popNames[i] = l.rstrip()
@@ -303,8 +303,8 @@ def updatePops(elementSel, elementRem):
     updateAll()
 
 def createInfile(fdf):
-    f=open(lpath + os.sep + 'infile', 'w')
-    print fdf.num_loci
+    f = open(lpath + os.sep + 'infile', 'w')
+    print(fdf.num_loci)
     f.write(str(fdf))
     f.close()
 
@@ -339,7 +339,7 @@ def endRunDatacal(after):
         ne = dc.getNe()
     else:
         fst, sampSize = fdc.run_datacal(data_dir = lpath)
-        print fst, sampSize
+        print(fst, sampSize)
     if not isTemporal:
         if fst < 0.0:
             systemPanel.force.setEnabled(False)
@@ -350,7 +350,7 @@ def endRunDatacal(after):
     locusFst = []
     l = f.readline()
     myPos = 0
-    while l<>'':
+    while l != '':
         if isDominant:
             lhe, lfst, lheold, llocus = l.rstrip().split(' ')
             while int(llocus)>myPos:
@@ -469,6 +469,7 @@ def changeChartCI(changeNotes=True):
     return confLines
 
 def report(fst):
+    global numAttempts
     global fda, fdc, fdRequest, runState, selRec2, splitSize
     global chartPanel, simsDonePanel, systemPanel, empiricalPanel
     global empiricalPanel, menuHandles, statusPanel, frame
@@ -488,7 +489,7 @@ def report(fst):
     ci = systemPanel.getCI()
     chartPanel.drawCI = True
     confLines = changeChartCI(False)
-    simsDonePanel.increment(splitSize/1000.0)
+    simsDonePanel.increment(splitSize / 1000.0)
     if isTemporal:
         desiredNe = empiricalPanel.getNe()
     else:
@@ -496,16 +497,17 @@ def report(fst):
     if simsDonePanel.getRange() == simsDonePanel.getValue():
         #print runState
         if isTemporal:
-            fdt.release() # We are the last one, this is safe
+            fdt.release()  # We are the last one, this is safe
         else:
-            fda.release() # We are the last one, this is safe
+            fda.release()  # We are the last one, this is safe
         if runState == 'ForceBeforeNeutral' or runState == 'Force':
             os.remove(lpath + os.sep + 'out.dat') #careful, not for 5000 case
             #print "max", maxRun, "min", minRun
             nextFst, maxRun, minRun = approximate_fst(desiredFst, fst, myFst,
                 maxRun, minRun)
             #print "obtained", fst, "desired", desiredFst, "next", nextFst, "max", maxRun, "min", minRun
-            if nextFst == myFst:
+            numAttempts += 1
+            if nextFst == myFst or numAttempts == 20:
                 numSims = systemPanel.getNumSims()
                 if runState == 'Force':
                     statusPanel.setStatus('Running final simulation', Color.YELLOW)
@@ -552,6 +554,7 @@ def report(fst):
                 statusPanel.setStatus('Running final simulation', Color.YELLOW)
             else:
                 runState = 'Force'
+                numAttempts = 0
                 statusPanel.setStatus('Forcing correct mean Fst for final pass', Color.RED)
                 numSims  = 50000
             neutralRec = FileParser.read(selRec2.fname)
@@ -670,16 +673,17 @@ def cancelFDist():
     statusPanel.setStatus('Computation interrupted')
 
 
-def runFDist(more = False):
+def runFDist(more=False):
+    global numAttempts
     global selRec2, frame, fdRequest, runState
     global empiricalPanel, systemPanel, statusPanel, chartPanel
     global isDominant, isTemporal
     chartPanel.resetData(True)
     try:
         if not more:
-            os.remove(lpath + os.sep + 'out.dat') #careful, not for 5000 case
+            os.remove(lpath + os.sep + 'out.dat') # careful, not for 5000 case
     except OSError:
-        pass  #Its ok if it doesn't exist
+        pass  # Its ok if it doesn't exist
     disableAllMenus()
     disablePanel(empiricalPanel)
     disablePanel(systemPanel)
@@ -719,6 +723,7 @@ def runFDist(more = False):
             statusPanel.setStatus('Forcing correct mean Fst for first pass', Color.RED)
             fdRequest = 'NeuFor'
             runState  = 'ForceBeforeNeutral'
+            numAttempts = 0
             numSims   = 50000
         elif neutral:
             statusPanel.setStatus('First simulation pass to determine initial neutral set', Color.CYAN)
@@ -728,6 +733,7 @@ def runFDist(more = False):
             statusPanel.setStatus('Forcing correct mean Fst for final simulation', Color.RED)
             fdRequest = 'Force'
             runState  = 'Force'
+            numAttempts = 0
             numSims   = 50000
         else:
             statusPanel.setStatus('Running simulation', Color.YELLOW)
