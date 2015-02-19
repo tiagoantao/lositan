@@ -1,3 +1,5 @@
+#!/bin/bash
+set -e
 rm -rf libs
 mkdir libs 2>/dev/null
 cd tmp
