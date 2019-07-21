@@ -265,7 +265,7 @@ class Chart(JPanel):
         self.exportX = width
         self.exportY = height
         self.chart = self._createEmptyChart()
-        self.chart.setAntiAlias(False)
+        self.chart.setAntiAlias(True)
         self.resetData()
         self.cp = ChartPanel(self.chart)
         self.cp.setDisplayToolTips(True)
