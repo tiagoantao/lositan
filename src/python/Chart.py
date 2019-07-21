@@ -14,8 +14,9 @@ from org.apache.batik.svggen import SVGGraphics2D
 from org.w3c.dom import DOMImplementation
 from org.w3c.dom import Document
 
-from com.lowagie.text import Document as TextDocument, Rectangle
-from com.lowagie.text.pdf import PdfWriter, DefaultFontMapper
+from com.itextpdf.awt import DefaultFontMapper
+from com.itextpdf.text import Document as TextDocument, Rectangle
+from com.itextpdf.text.pdf import PdfWriter
 
 from org.jfree.chart import  ChartFactory, ChartPanel, JFreeChart, ChartUtils
 from org.jfree.chart.annotations import XYTextAnnotation

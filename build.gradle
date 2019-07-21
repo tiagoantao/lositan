@@ -16,7 +16,7 @@ repositories {
 ext {
 	ver_biopython = '162'
 	ver_batik = '1.11'
-	ver_itext = '2.1.7'
+	ver_itext = '5.5.13.1'
 	ver_jfreechart = '1.5.0'
 	ver_jython = '2.7.1'
 }
@@ -27,11 +27,7 @@ dependencies {
 	biopython "biopython:biopython:biopython-${ver_biopython}@zip"
 	implementation "org.jfree:jfreechart:${ver_jfreechart}"
 	implementation "org.python:jython-standalone:${ver_jython}"
-	implementation("com.lowagie:itext:${ver_itext}") {
-		exclude group: 'bouncycastle', module: 'bcmail-jdk14'
-		exclude group: 'bouncycastle', module: 'bcprov-jdk14'
-		exclude group: 'bouncycastle', module: 'bctsp-jdk14'
-	}
+	implementation "com.itextpdf:itextpdf:${ver_itext}"
 
 	implementation "org.apache.xmlgraphics:batik-awt-util:${ver_batik}"
 	implementation("org.apache.xmlgraphics:batik-dom:${ver_batik}") {
