@@ -17,14 +17,14 @@ from org.w3c.dom import Document
 from com.lowagie.text import Document as TextDocument, Rectangle
 from com.lowagie.text.pdf import PdfWriter, DefaultFontMapper
 
-from org.jfree.chart import  ChartFactory, ChartPanel, JFreeChart, ChartUtilities
+from org.jfree.chart import  ChartFactory, ChartPanel, JFreeChart, ChartUtils
 from org.jfree.chart.annotations import XYTextAnnotation
 from org.jfree.chart.axis import NumberAxis
 from org.jfree.chart.labels import StandardXYToolTipGenerator
 from org.jfree.chart.plot import PlotOrientation
 from org.jfree.chart.renderer.xy import DeviationRenderer, XYLineAndShapeRenderer, XYAreaRenderer, XYDifferenceRenderer, XYDotRenderer
 from org.jfree.data.xy import XYSeriesCollection, YIntervalSeriesCollection, XYSeries, YIntervalSeries, DefaultTableXYDataset
-from org.jfree.ui import TextAnchor
+from org.jfree.chart.ui import TextAnchor
 
 from Shared import info
 
@@ -216,7 +216,7 @@ class Chart(JPanel):
         else:
             return
         if format == 'PNG':
-            ChartUtilities.saveChartAsPNG(file, self.chart, self.exportX, self.exportY)
+            ChartUtils.saveChartAsPNG(file, self.chart, self.exportX, self.exportY)
         elif format == 'SVG':
             domImpl = GenericDOMImplementation.getDOMImplementation()
             doc = domImpl.createDocument(None, "svg", None)

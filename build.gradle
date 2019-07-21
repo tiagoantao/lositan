@@ -17,7 +17,7 @@ ext {
 	ver_biopython = '162'
 	ver_batik = '1.7'
 	ver_itext = '2.1.7'
-	ver_jfreechart = '1.0.13'
+	ver_jfreechart = '1.5.0'
 	ver_jython = '2.5.1'
 }
 configurations {
@@ -25,7 +25,7 @@ configurations {
 }
 dependencies {
 	biopython "biopython:biopython:biopython-${ver_biopython}@zip"
-	implementation "jfree:jfreechart:${ver_jfreechart}"
+	implementation "org.jfree:jfreechart:${ver_jfreechart}"
 	implementation "org.python:jython-standalone:${ver_jython}"
 	implementation("com.lowagie:itext:${ver_itext}") {
 		exclude group: 'bouncycastle', module: 'bcmail-jdk14'
