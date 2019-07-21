@@ -1,0 +1,206 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import org.gradle.api.file.RelativePath
+plugins {
+	id 'application'
+}
+repositories {
+	mavenLocal()
+	mavenCentral()
+	ivy {
+		url 'https://github.com/'
+		patternLayout {
+			artifact '/[organisation]/[module]/archive/[revision].[ext]'
+		}
+	}
+}
+ext {
+	ver_biopython = '162'
+	ver_batik = '1.7'
+	ver_itext = '2.1.7'
+	ver_jfreechart = '1.0.13'
+	ver_jython = '2.5.1'
+}
+configurations {
+	biopython
+}
+dependencies {
+	biopython "biopython:biopython:biopython-${ver_biopython}@zip"
+	implementation "jfree:jfreechart:${ver_jfreechart}"
+	implementation "org.python:jython-standalone:${ver_jython}"
+	implementation("com.lowagie:itext:${ver_itext}") {
+		exclude group: 'bouncycastle', module: 'bcmail-jdk14'
+		exclude group: 'bouncycastle', module: 'bcprov-jdk14'
+		exclude group: 'bouncycastle', module: 'bctsp-jdk14'
+	}
+
+	implementation "org.apache.xmlgraphics:batik-awt-util:${ver_batik}"
+	implementation("org.apache.xmlgraphics:batik-dom:${ver_batik}") {
+		exclude group: 'xalan', module: 'xalan'
+		exclude group: 'xml-apis', module: 'xml-apis'
+	}
+	implementation("org.apache.xmlgraphics:batik-svggen:${ver_batik}") {
+		exclude group: 'xml-apis', module: 'xml-apis'
+	}
+	implementation "org.apache.xmlgraphics:batik-util:${ver_batik}"
+	implementation("org.apache.xmlgraphics:batik-xml:${ver_batik}") {
+		exclude group: 'xalan', module: 'xalan'
+		exclude group: 'xml-apis', module: 'xml-apis'
+	}
+}
+
+defaultTasks 'clean', 'distributions'
+
+def javaPlatform = JavaVersion.VERSION_1_6
+sourceCompatibility = javaPlatform
+targetCompatibility = sourceCompatibility
+
+sourceSets {
+	main.java.srcDirs = ['src/java']
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+version = '1.0'
+group = 'org.tiago'
+description = 'Lositan and Mcheza - Detection of genes under selection.'
+
+ext {
+	moduleName = 'lositan'
+	depsDirName = 'lib'
+	title = "${name}: ${description}".toString()
+	author = 'Tiago Antão'
+	email = 'tiago@tiago.org'
+	copyright = "2017-${java.time.LocalDate.now().year} ${author}".toString()
+	url = 'https://tiago.org/'
+	licenseType = 'BSD-3-clause'
+	mainClassName = 'Boot'
+	tokenMap = [
+		'app.title': name.toUpperCase(),
+		'name': name,
+		'version': version,
+	]
+}
+
+task packagePythonSource(type: Zip) {
+	group = 'build'
+	description 'Assembles a zip archive containing the deployment Python source.'
+	archiveFileName = 'py.zip'
+	destinationDirectory = file("${buildDir}/tmp")
+	from "${projectDir}/src/python"
+}
+
+task packageBioPython(type: Copy) {
+	group = 'build'
+	description 'Assembles a folder containing a minimal BioPython distribution.'
+	def dest = file("${buildDir}/tmp/Lib")
+	def zipPath = project.configurations.biopython.find { it.name.startsWith("biopython") }
+	from(zipTree(zipPath)) {
+		include "*/LICENSE"
+		include "*/README"
+		include "*/Bio/__init__.py"
+		include "*/Bio/File.py"
+		include "*/Bio/ParserSupport.py"
+		include "*/Bio/_py3k/**/*"
+		include "*/Bio/PopGen/**/*"
+		eachFile { it.relativePath = new RelativePath(true, it.relativePath.segments.drop(1)) }
+		includeEmptyDirs = false
+	}
+	into dest
+}
+
+jar {
+	inputs.property('moduleName', moduleName)
+	from packagePythonSource
+	from "${projectDir}/support/allfdist.zip"
+	from("${projectDir}/support") {
+		include '*.gp'
+		include '*.txt'
+		include '*.temp'
+	}
+	from "${projectDir}/mcheza.jpg"
+	from "${projectDir}/title.gif"
+	manifest {
+		attributes(
+			'Build-Jdk': System.getProperty('java.version'),
+			'Created-By': "Gradle ${gradle.gradleVersion}",
+			'Automatic-Module-Name': "${project.group}.${moduleName}",
+			'Class-Path': configurations.runtimeClasspath.collect { it.name }.join(' ') + ' Lib/',
+			'Main-Class': project.mainClassName,
+		)
+	}
+}
+
+task processScriptTemplates(type: Copy) {
+	description 'Processes start script templates.'
+	from("${projectDir}/src/templates") {
+		filter(ReplaceTokens, tokens: tokenMap, beginToken: '${', endToken: '}')
+	}
+	into buildDir
+}
+
+application {
+	mainClassName = project.mainClassName
+	executableDir = ''
+	applicationDefaultJvmArgs = ["-Xmx1024m"]
+}
+
+// Assign custom script generator template.
+def stNix = "${buildDir}/script-template.sh"
+def stWin = "${buildDir}/script-template.bat"
+def taskSS = rootProject.tasks.getByPath('startScripts')
+taskSS.unixStartScriptGenerator.template = resources.text.fromFile(stNix)
+taskSS.windowsStartScriptGenerator.template = resources.text.fromFile(stWin)
+
+startScripts {
+	dependsOn processScriptTemplates
+	doLast {
+		unixScript.text = unixScript.text.replaceAll('\'"(.+?)"\'', '$1')
+	}
+}
+
+task createStartScriptMcheza(type: CreateStartScripts, dependsOn: startScripts) {
+	description = 'Creates OS specific scripts (for Mcheza/dominant version of application).'
+	applicationName = 'mcheza'
+	def ss = rootProject.tasks.getByPath('startScripts')
+	defaultJvmOpts = ss.defaultJvmOpts
+	classpath = ss.classpath
+	mainClassName = ss.mainClassName
+	outputDir = ss.outputDir
+	unixStartScriptGenerator.template = ss.unixStartScriptGenerator.template
+	doLast {
+		unixScript.text = unixScript.text.replaceAll('\'"(.+?)"\'', '$1').replace('.jar"', '.jar" dominant').replace('title.gif', 'mcheza.jpg').replace('LOSITAN', 'MCHEZA')
+		windowsScript.text = windowsScript.text.replace('.jar"', '.jar" dominant').replace('title.gif', 'mcheza.jpg')
+	}
+}
+
+task createStartScriptLositemp(type: CreateStartScripts, dependsOn: startScripts) {
+	description = 'Creates OS specific scripts (for temporal version of application).'
+	applicationName = 'lositemp'
+	def ss = rootProject.tasks.getByPath('startScripts')
+	defaultJvmOpts = ss.defaultJvmOpts
+	classpath = ss.classpath
+	mainClassName = ss.mainClassName
+	outputDir = ss.outputDir
+	unixStartScriptGenerator.template = ss.unixStartScriptGenerator.template
+	doLast {
+		unixScript.text = unixScript.text.replaceAll('\'"(.+?)"\'', '$1').replace('.jar"', '.jar" temp').replace('LOSITAN', 'LOSITEMP')
+		windowsScript.text = windowsScript.text.replace('.jar"', '.jar" temp')
+	}
+}
+
+task distributions(dependsOn: [installDist, startScripts, createStartScriptMcheza, createStartScriptLositemp]) {
+	group = 'distribution'
+	description = 'Assembles all standard distributions.'
+}
+
+distributions {
+	main {
+		contents {
+			from(packageBioPython) {
+				into "lib/Lib"
+			}
+		}
+	}
+}
