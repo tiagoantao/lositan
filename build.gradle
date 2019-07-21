@@ -18,7 +18,7 @@ ext {
 	ver_batik = '1.7'
 	ver_itext = '2.1.7'
 	ver_jfreechart = '1.5.0'
-	ver_jython = '2.5.1'
+	ver_jython = '2.7.1'
 }
 configurations {
 	biopython
