@@ -15,7 +15,7 @@ repositories {
 }
 ext {
 	ver_biopython = '162'
-	ver_batik = '1.7'
+	ver_batik = '1.11'
 	ver_itext = '2.1.7'
 	ver_jfreechart = '1.5.0'
 	ver_jython = '2.7.1'
