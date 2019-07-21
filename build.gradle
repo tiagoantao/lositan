@@ -190,7 +190,7 @@ task createStartScriptLositemp(type: CreateStartScripts, dependsOn: startScripts
 	}
 }
 
-task distributions(dependsOn: [installDist, startScripts, createStartScriptMcheza, createStartScriptLositemp]) {
+task distributions(dependsOn: [startScripts, installDist, assembleDist, createStartScriptMcheza, createStartScriptLositemp]) {
 	group = 'distribution'
 	description = 'Assembles all standard distributions.'
 }
