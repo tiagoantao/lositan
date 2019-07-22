@@ -70,7 +70,7 @@ ext {
 	email = 'tiago@tiago.org'
 	copyright = "2017-${java.time.LocalDate.now().year} ${author}".toString()
 	url = 'https://tiago.org/'
-	licenseType = 'BSD-3-clause'
+	licenseType = 'GNU General Public License'
 	mainClassName = 'Boot'
 	tokenMap = [
 		'app.title': name.toUpperCase(),
