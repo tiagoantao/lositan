@@ -88,10 +88,10 @@ class SystemPanel(JPanel, ActionListener, ItemListener, PropertyChangeListener):
         self.enableChartFun = False
         self.setLayout(GridLayout(6,2))
         self.add(JLabel('CPU Cores'))
-        cores = JComboBox(['1', '2', '4', '8', '16', '32', '64', '128'])
         nprocs = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors()
-        pos = min([7, log(ceil(nprocs)) / log(2)])
-        cores.setSelectedIndex(int(pos))
+        procvals = sorted(set([nprocs, 1, 2, 4, 8, 16, 32, 64, 128]))
+        cores = JComboBox(procvals)
+        cores.setSelectedIndex(procvals.index(nprocs))
         cores.setMaximumSize(cores.getPreferredSize())
         self.cores = cores
         self.add(self.cores)

@@ -160,6 +160,8 @@ class EmpiricalPanel(JPanel, PropertyChangeListener, ItemListener):
             self.mut = JComboBox(['Infinite Alleles', 'Stepwise'])
             self.mut.addItemListener(self)
             self.add(self.mut)
+        else:
+            self.mut = None
         self.add(JLabel('Subsample size'))
         sampleSize = JFormattedTextField(
                 NumberFormat.getIntegerInstance(Locale.US))
