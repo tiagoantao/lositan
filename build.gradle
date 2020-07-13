@@ -1,3 +1,7 @@
+buildscript {
+	if (!JavaVersion.current().java8Compatible)
+		throw new IllegalStateException("Build requires JDK 8+ (detected ${JavaVersion.current()})")
+}
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.file.RelativePath
 plugins {
@@ -49,7 +53,7 @@ dependencies {
 
 defaultTasks 'clean', 'distributions'
 
-def javaPlatform = JavaVersion.VERSION_1_6
+def javaPlatform = JavaVersion.VERSION_1_8
 sourceCompatibility = javaPlatform
 targetCompatibility = sourceCompatibility
 
